@@ -1,39 +1,39 @@
 # Core deep learning
-torch==2.2.0
-torchvision==0.17.0
+torch>=2.2.0
+torchvision>=0.17.0
 
-# Graph neural networks - MUST match torch version
-torch-geometric==2.5.0
-torch-scatter==2.1.2
-torch-sparse==0.6.18
+# Graph neural networks
+# Install via: pip install torch-geometric pyg_lib torch-scatter torch-sparse -f https://data.pyg.org/whl/torch-2.2.0+cpu.html
+# Or for CUDA: -f https://data.pyg.org/whl/torch-2.2.0+cu121.html
+torch-geometric>=2.5.0
 
 # Chemistry
-rdkit==2024.3.3
+rdkit>=2023.9.1
 
 # Protein embeddings
-fair-esm==2.0.0
+fair-esm>=2.0.0
 
 # Data processing
-numpy==1.26.4
-pandas==2.2.0
-scipy==1.12.0
-scikit-learn==1.4.0
+numpy>=1.26.0
+pandas>=2.1.0
+scipy>=1.11.0
+scikit-learn>=1.3.0
 
 # Configuration
-hydra-core==1.3.2
-omegaconf==2.3.0
+hydra-core>=1.3.2
+omegaconf>=2.3.0
 
 # Logging & visualization
-tqdm==4.66.1
-matplotlib==3.8.2
-seaborn==0.13.2
+tqdm>=4.66.0
+matplotlib>=3.8.0
+seaborn>=0.13.0
 
 # Optional: experiment tracking
-wandb==0.16.2
+wandb>=0.16.0
 
 # Testing
-pytest==8.0.0
-pytest-cov==4.1.0
+pytest>=8.0.0
+pytest-cov>=4.1.0
 
 # Reproducibility
-pyyaml==6.0.1
+pyyaml>=6.0.1
