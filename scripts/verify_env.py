@@ -29,14 +29,11 @@ def main():
     print(f"Python: {sys.version}")
     print("-" * 60)
 
-    packages = [
+    # Required packages
+    required_packages = [
         ("torch", "torch"),
-        ("torchvision", "torchvision"),
         ("torch-geometric", "torch_geometric"),
-        ("torch-scatter", "torch_scatter"),
-        ("torch-sparse", "torch_sparse"),
         ("rdkit", "rdkit"),
-        ("fair-esm", "esm"),
         ("numpy", "numpy"),
         ("pandas", "pandas"),
         ("scipy", "scipy"),
@@ -45,20 +42,38 @@ def main():
         ("omegaconf", "omegaconf"),
         ("tqdm", "tqdm"),
         ("matplotlib", "matplotlib"),
+    ]
+
+    # Optional packages
+    optional_packages = [
+        ("torchvision", "torchvision"),
+        ("torch-scatter", "torch_scatter"),
+        ("torch-sparse", "torch_sparse"),
+        ("fair-esm", "esm"),
         ("seaborn", "seaborn"),
         ("wandb", "wandb"),
         ("pytest", "pytest"),
     ]
 
-    all_ok = True
-    for pkg_name, import_name in packages:
+    print("Required packages:")
+    all_required_ok = True
+    for pkg_name, import_name in required_packages:
         ok, ver_or_err = check_package(pkg_name, import_name)
         status = "OK" if ok else "MISSING"
         if ok:
             print(f"  {pkg_name:20s} {ver_or_err:15s} [{status}]")
         else:
             print(f"  {pkg_name:20s} {'---':15s} [{status}] {ver_or_err}")
-            all_ok = False
+            all_required_ok = False
+
+    print("\nOptional packages:")
+    for pkg_name, import_name in optional_packages:
+        ok, ver_or_err = check_package(pkg_name, import_name)
+        status = "OK" if ok else "MISSING"
+        if ok:
+            print(f"  {pkg_name:20s} {ver_or_err:15s} [{status}]")
+        else:
+            print(f"  {pkg_name:20s} {'---':15s} [{status}]")
 
     print("-" * 60)
 
@@ -77,36 +92,37 @@ def main():
 
     print("-" * 60)
 
-    # Verify PyG and torch compatibility
+    # Verify PyG functionality (works without scatter/sparse in PyG 2.5+)
+    pyg_ok = False
     try:
         import torch
         import torch_geometric
-        import torch_scatter
-        import torch_sparse
-
-        # Quick functionality test
         from torch_geometric.data import Data
-        import torch
+        from torch_geometric.nn import GCNConv, GATConv, GINConv, global_mean_pool
 
+        # Test Data creation
         x = torch.tensor([[1.0], [2.0], [3.0]])
         edge_index = torch.tensor([[0, 1, 1, 2], [1, 0, 2, 1]])
         data = Data(x=x, edge_index=edge_index)
-
         print(f"PyG Data creation: OK (nodes={data.num_nodes}, edges={data.num_edges})")
 
-        # Test scatter
-        from torch_scatter import scatter_mean
-        src = torch.tensor([1.0, 2.0, 3.0, 4.0])
-        index = torch.tensor([0, 0, 1, 1])
-        result = scatter_mean(src, index)
-        assert result.tolist() == [1.5, 3.5], "scatter_mean failed"
-        print("torch-scatter: OK")
+        # Test GNN layer
+        conv = GCNConv(1, 4)
+        out = conv(x, edge_index)
+        print(f"PyG GCNConv: OK (output shape={tuple(out.shape)})")
+
+        # Test pooling
+        batch = torch.tensor([0, 0, 0])
+        pooled = global_mean_pool(out, batch)
+        print(f"PyG global_mean_pool: OK (output shape={tuple(pooled.shape)})")
+
+        pyg_ok = True
 
     except Exception as e:
-        print(f"PyG/torch compatibility issue: {e}")
-        all_ok = False
+        print(f"PyG functionality issue: {e}")
 
     # Verify RDKit
+    rdkit_ok = False
     try:
         from rdkit import Chem
         from rdkit.Chem import AllChem, Descriptors
@@ -115,25 +131,38 @@ def main():
         assert mol is not None, "Failed to parse SMILES"
         assert mol.GetNumAtoms() == 3, "Incorrect atom count"
         print("RDKit SMILES parsing: OK")
+        rdkit_ok = True
 
     except Exception as e:
         print(f"RDKit issue: {e}")
-        all_ok = False
 
-    # Verify ESM
+    # Verify ESM (optional)
+    esm_ok = False
     try:
         import esm
         print("ESM import: OK")
-    except Exception as e:
-        print(f"ESM issue: {e}")
-        all_ok = False
+        esm_ok = True
+    except ImportError:
+        print("ESM: Not installed (optional - needed for ESM-2 protein embeddings)")
 
     print("=" * 60)
-    if all_ok:
-        print("All checks passed!")
+
+    # Final verdict
+    core_ok = all_required_ok and pyg_ok and rdkit_ok
+
+    if core_ok:
+        print("Core requirements satisfied - ready to run experiments!")
+        if not esm_ok:
+            print("Note: ESM not installed. Use protein_encoder_type='cnn' in configs.")
         return 0
     else:
-        print("Some checks failed - fix before proceeding.")
+        print("Core requirements not met - fix before proceeding.")
+        if not all_required_ok:
+            print("  -> Install missing required packages")
+        if not pyg_ok:
+            print("  -> Fix PyTorch Geometric installation")
+        if not rdkit_ok:
+            print("  -> Fix RDKit installation")
         return 1
 
 
