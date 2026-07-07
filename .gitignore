@@ -1,0 +1,107 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Translations
+*.mo
+*.pot
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Data files (large, should not be in git)
+data/raw/
+data/processed/
+data/embeddings/
+*.csv
+*.tsv
+*.pkl
+*.pickle
+*.h5
+*.hdf5
+*.pt
+*.pth
+
+# Keep data directory structure
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/embeddings/.gitkeep
+
+# Experiment outputs (can be large)
+experiments/*/checkpoints/
+experiments/*/wandb/
+*.ckpt
+
+# But keep experiment configs and results
+!experiments/**/config.yaml
+!experiments/**/results.json
+!experiments/**/metrics.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets
+*.secret
+*.key
+wandb/

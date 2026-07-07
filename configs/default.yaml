@@ -1,0 +1,103 @@
+# Default configuration for DTI-GNN experiments
+# All hyperparameters in one place - nothing hardcoded in scripts
+
+# Experiment metadata
+experiment:
+  name: "dti_gnn"
+  seed: 42
+  deterministic: true
+  log_dir: "experiments/"
+
+# Data settings
+data:
+  dataset: "davis"  # davis, kiba
+  split_type: "warm"  # warm, cold_drug, cold_target, cold_both
+  train_ratio: 0.8
+  val_ratio: 0.1
+  test_ratio: 0.1
+  cache_dir: "data/processed/"
+  embedding_dir: "data/embeddings/"
+
+# Drug encoder (molecular graph)
+drug_encoder:
+  type: "gin"  # gcn, gat, gin
+  hidden_dim: 128
+  num_layers: 3
+  dropout: 0.2
+  pooling: "mean"  # mean, sum, attention
+  node_features:
+    - atom_type
+    - degree
+    - formal_charge
+    - hybridization
+    - aromaticity
+    - num_hs
+    - chirality
+  edge_features:
+    - bond_type
+    - conjugation
+    - ring_membership
+
+# Protein encoder
+protein_encoder:
+  type: "cnn"  # cnn, esm2
+  # CNN settings
+  cnn:
+    embedding_dim: 128
+    num_filters: 32
+    kernel_sizes: [4, 8, 12]
+  # ESM-2 settings
+  esm2:
+    model_name: "esm2_t33_650M_UR50D"
+    pooling: "mean"  # mean, attention
+    freeze: true
+
+# Fusion module
+fusion:
+  type: "cross_attention"  # concat, cross_attention
+  hidden_dim: 128
+  num_heads: 4
+  dropout: 0.1
+
+# Prediction head
+predictor:
+  hidden_dims: [256, 128]
+  dropout: 0.2
+  task: "regression"  # regression, classification
+
+# Training settings
+training:
+  batch_size: 128
+  num_epochs: 200
+  early_stopping_patience: 20
+  learning_rate: 0.0001
+  weight_decay: 0.00001
+  gradient_clip: 1.0
+  lr_scheduler:
+    type: "reduce_on_plateau"  # reduce_on_plateau, cosine
+    factor: 0.5
+    patience: 10
+    min_lr: 0.000001
+
+# Evaluation metrics (depends on task)
+metrics:
+  regression:
+    - mse
+    - rmse
+    - ci  # concordance index
+    - rm2  # r_m^2 (Roy et al.)
+    - pearson
+    - spearman
+  classification:
+    - auroc
+    - auprc
+    - f1
+    - accuracy
+
+# Logging
+logging:
+  use_wandb: false
+  wandb_project: "dti-gnn"
+  log_interval: 10
+  save_checkpoints: true
+  checkpoint_metric: "ci"  # metric to use for best model selection
