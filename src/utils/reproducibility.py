@@ -42,6 +42,21 @@ def set_seed(seed: int, deterministic: bool = True) -> None:
             torch.use_deterministic_algorithms(True, warn_only=True)
 
 
+def get_device(device: Optional[str] = None) -> torch.device:
+    """
+    Get the appropriate device for computation.
+
+    Args:
+        device: Device specification ('cuda', 'cpu', or None for auto)
+
+    Returns:
+        torch.device object
+    """
+    if device is None:
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+    return torch.device(device)
+
+
 def get_git_commit_hash() -> Optional[str]:
     """Get current git commit hash for logging."""
     try:

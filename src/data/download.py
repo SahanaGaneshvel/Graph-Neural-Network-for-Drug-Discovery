@@ -90,7 +90,13 @@ def download_dataset(
     # Download each file
     success = True
     for name, url in urls.items():
-        ext = ".txt" if "fold" in name else (".json" if name in ["ligands", "proteins"] else "")
+        # Determine file extension based on content type
+        if "fold" in name:
+            ext = ".txt"
+        elif name in ["ligands", "proteins"]:
+            ext = ".txt"  # These are Python dict literals, not JSON
+        else:
+            ext = ""  # affinity matrix has no extension
         dest = dataset_dir / f"{name}{ext}"
         if not download_file(url, dest, verbose):
             success = False
@@ -127,8 +133,10 @@ def load_davis(data_dir: Optional[Path] = None) -> dict:
         content = f.read()
         proteins = eval(content)  # {protein_id: sequence}
 
-    # Load affinity matrix
-    affinity = np.loadtxt(data_dir / "affinity")
+    # Load affinity matrix (stored as pickled numpy array in DeepDTA format)
+    import pickle
+    with open(data_dir / "affinity", "rb") as f:
+        affinity = pickle.load(f, encoding='latin1')
 
     # Convert Kd to pKd: -log10(Kd_nM / 1e9) = -log10(Kd_nM) + 9
     # Note: Davis affinities are already Kd in nM
@@ -171,8 +179,10 @@ def load_kiba(data_dir: Optional[Path] = None) -> dict:
         content = f.read()
         proteins = eval(content)
 
-    # Load affinity matrix
-    affinity = np.loadtxt(data_dir / "affinity")
+    # Load affinity matrix (stored as pickled numpy array in DeepDTA format)
+    import pickle
+    with open(data_dir / "affinity", "rb") as f:
+        affinity = pickle.load(f, encoding='latin1')
 
     drug_ids = list(drugs.keys())
     protein_ids = list(proteins.keys())
