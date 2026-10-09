@@ -93,8 +93,9 @@ class TestFeaturization:
         indices = sequence_to_indices(sequence)
 
         assert len(indices) == len(sequence)
-        # A should map to 0 (first in vocab)
-        assert indices[0] == 0
+        # Index 0 is reserved for padding, so A (first amino acid) maps to 1
+        assert indices[0] == 1
+        assert (indices > 0).all()
 
     def test_sequence_to_indices_padding(self):
         """Test sequence padding."""

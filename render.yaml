@@ -1,0 +1,15 @@
+# Render Blueprint: the prediction API (scripts/serve_app.py) as a web service.
+# Deploy: https://render.com/deploy?repo=https://github.com/SahanaGaneshvel/Graph-Neural-Network-for-Drug-Discovery
+services:
+  - type: web
+    name: neuropharma-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements-server.txt
+    startCommand: python scripts/serve_app.py --host 0.0.0.0
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.9
+      - key: OMP_NUM_THREADS
+        value: "1"

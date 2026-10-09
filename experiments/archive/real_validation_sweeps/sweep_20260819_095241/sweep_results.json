@@ -1,0 +1,166 @@
+[
+  {
+    "model": "graphdta_gin",
+    "dataset": "davis",
+    "split": "warm",
+    "n_seeds": 1,
+    "mse_mean": 0.6822873950004578,
+    "mse_std": 0.0,
+    "mse_values": [
+      0.6822873950004578
+    ],
+    "rmse_mean": 0.8260068976712348,
+    "rmse_std": 0.0,
+    "rmse_values": [
+      0.8260068976712348
+    ],
+    "ci_mean": 0.6951131184753682,
+    "ci_std": 0.0,
+    "ci_values": [
+      0.6951131184753682
+    ],
+    "rm2_mean": 0.06587268161168404,
+    "rm2_std": 0.0,
+    "rm2_values": [
+      0.06587268161168404
+    ],
+    "pearson_mean": 0.3984605889416179,
+    "pearson_std": 0.0,
+    "pearson_values": [
+      0.3984605889416179
+    ],
+    "spearman_mean": 0.36556583363738954,
+    "spearman_std": 0.0,
+    "spearman_values": [
+      0.36556583363738954
+    ],
+    "r2_mean": 0.09528595209121704,
+    "r2_std": 0.0,
+    "r2_values": [
+      0.09528595209121704
+    ]
+  },
+  {
+    "model": "graphdta_gin",
+    "dataset": "davis",
+    "split": "cold_drug",
+    "n_seeds": 1,
+    "mse_mean": 0.7397131323814392,
+    "mse_std": 0.0,
+    "mse_values": [
+      0.7397131323814392
+    ],
+    "rmse_mean": 0.8600657721252714,
+    "rmse_std": 0.0,
+    "rmse_values": [
+      0.8600657721252714
+    ],
+    "ci_mean": 0.6308362521848674,
+    "ci_std": 0.0,
+    "ci_values": [
+      0.6308362521848674
+    ],
+    "rm2_mean": 0.0,
+    "rm2_std": 0.0,
+    "rm2_values": [
+      0.0
+    ],
+    "pearson_mean": 0.26250987759968974,
+    "pearson_std": 0.0,
+    "pearson_values": [
+      0.26250987759968974
+    ],
+    "spearman_mean": 0.2602579853066123,
+    "spearman_std": 0.0,
+    "spearman_values": [
+      0.2602579853066123
+    ],
+    "r2_mean": -0.0006964206695556641,
+    "r2_std": 0.0,
+    "r2_values": [
+      -0.0006964206695556641
+    ]
+  },
+  {
+    "model": "graphdta_gin",
+    "dataset": "davis",
+    "split": "cold_target",
+    "n_seeds": 1,
+    "mse_mean": 0.9000582098960876,
+    "mse_std": 0.0,
+    "mse_values": [
+      0.9000582098960876
+    ],
+    "rmse_mean": 0.9487139768634631,
+    "rmse_std": 0.0,
+    "rmse_values": [
+      0.9487139768634631
+    ],
+    "ci_mean": 0.6437416936963442,
+    "ci_std": 0.0,
+    "ci_values": [
+      0.6437416936963442
+    ],
+    "rm2_mean": 0.0,
+    "rm2_std": 0.0,
+    "rm2_values": [
+      0.0
+    ],
+    "pearson_mean": 0.2957115596724811,
+    "pearson_std": 0.0,
+    "pearson_values": [
+      0.2957115596724811
+    ],
+    "spearman_mean": 0.2660091033153837,
+    "spearman_std": 0.0,
+    "spearman_values": [
+      0.2660091033153837
+    ],
+    "r2_mean": -0.25890183448791504,
+    "r2_std": 0.0,
+    "r2_values": [
+      -0.25890183448791504
+    ]
+  },
+  {
+    "model": "graphdta_gin",
+    "dataset": "davis",
+    "split": "cold_both",
+    "n_seeds": 1,
+    "mse_mean": 0.8121265172958374,
+    "mse_std": 0.0,
+    "mse_values": [
+      0.8121265172958374
+    ],
+    "rmse_mean": 0.9011806241236201,
+    "rmse_std": 0.0,
+    "rmse_values": [
+      0.9011806241236201
+    ],
+    "ci_mean": 0.6376308105039147,
+    "ci_std": 0.0,
+    "ci_values": [
+      0.6376308105039147
+    ],
+    "rm2_mean": 0.0,
+    "rm2_std": 0.0,
+    "rm2_values": [
+      0.0
+    ],
+    "pearson_mean": 0.260578682948299,
+    "pearson_std": 0.0,
+    "pearson_values": [
+      0.260578682948299
+    ],
+    "spearman_mean": 0.2809964340336396,
+    "spearman_std": 0.0,
+    "spearman_values": [
+      0.2809964340336396
+    ],
+    "r2_mean": -0.008440136909484863,
+    "r2_std": 0.0,
+    "r2_values": [
+      -0.008440136909484863
+    ]
+  }
+]

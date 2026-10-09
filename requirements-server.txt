@@ -1,0 +1,12 @@
+# Runtime dependencies for the hosted API (Render). CPU-only PyTorch keeps the
+# image small; the default PyPI torch wheel for Linux pulls CUDA (~2.5 GB).
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.5.1+cpu
+torch-geometric==2.6.1
+rdkit==2024.3.6
+numpy>=1.26,<2.1
+pandas>=2.2,<2.3
+scipy>=1.13,<1.15
+scikit-learn>=1.5,<1.6
+pyyaml>=6.0
+tqdm>=4.66

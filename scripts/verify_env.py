@@ -38,10 +38,10 @@ def main():
         ("pandas", "pandas"),
         ("scipy", "scipy"),
         ("scikit-learn", "sklearn"),
-        ("hydra-core", "hydra"),
-        ("omegaconf", "omegaconf"),
+        ("pyyaml", "yaml"),
         ("tqdm", "tqdm"),
         ("matplotlib", "matplotlib"),
+        ("seaborn", "seaborn"),
     ]
 
     # Optional packages
@@ -50,7 +50,6 @@ def main():
         ("torch-scatter", "torch_scatter"),
         ("torch-sparse", "torch_sparse"),
         ("fair-esm", "esm"),
-        ("seaborn", "seaborn"),
         ("wandb", "wandb"),
         ("pytest", "pytest"),
     ]

@@ -32,14 +32,11 @@ def set_seed(seed: int, deterministic: bool = True) -> None:
     if deterministic:
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
-        # Note: Some operations don't have deterministic implementations
-        # This will raise errors if such operations are used
-        try:
-            torch.use_deterministic_algorithms(True)
-        except Exception:
-            # Fall back if not all operations support deterministic mode
-            os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
-            torch.use_deterministic_algorithms(True, warn_only=True)
+        # Some scatter ops used by PyG have no deterministic CUDA kernel.
+        # warn_only=True keeps determinism wherever it is available instead of
+        # crashing mid-training when such an op is hit.
+        os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
+        torch.use_deterministic_algorithms(True, warn_only=True)
 
 
 def get_device(device: Optional[str] = None) -> torch.device:

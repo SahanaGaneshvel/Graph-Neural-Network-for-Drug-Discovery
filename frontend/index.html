@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f8fbf9">
+  <meta name="description" content="AI-Powered Drug Discovery Platform - Predict Drug-Target Interactions with Graph Neural Networks">
+  <title>NeuroPharma AI | Drug Discovery Platform</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22%3E%3Ccircle cx=%2220%22 cy=%2220%22 r=%2216%22 fill=%22%237eb8a8%22/%3E%3Ccircle cx=%2220%22 cy=%2220%22 r=%226%22 fill=%22white%22/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Animated Background -->
+    <div class="bg-animation">
+      <div class="molecule-grid"></div>
+      <div class="glow-orb glow-orb-1"></div>
+      <div class="glow-orb glow-orb-2"></div>
+      <div class="glow-orb glow-orb-3"></div>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <div class="logo-icon">
+            <svg viewBox="0 0 40 40" fill="none">
+              <circle cx="20" cy="20" r="8" stroke="currentColor" stroke-width="2"/>
+              <circle cx="8" cy="12" r="4" fill="currentColor"/>
+              <circle cx="32" cy="12" r="4" fill="currentColor"/>
+              <circle cx="20" cy="34" r="4" fill="currentColor"/>
+              <line x1="12" y1="14" x2="16" y2="18" stroke="currentColor" stroke-width="2"/>
+              <line x1="28" y1="14" x2="24" y2="18" stroke="currentColor" stroke-width="2"/>
+              <line x1="20" y1="28" x2="20" y2="30" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </div>
+          <div class="logo-text">
+            <span class="logo-title">NeuroPharma</span>
+            <span class="logo-subtitle">AI Platform</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <span class="nav-label">MAIN</span>
+        <a href="#dashboard" class="nav-link active" data-page="dashboard">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7" rx="1"/>
+              <rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/>
+              <rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+          </span>
+          Dashboard
+        </a>
+        <a href="#predict" class="nav-link" data-page="predict">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+              <path d="M2 17l10 5 10-5"/>
+              <path d="M2 12l10 5 10-5"/>
+            </svg>
+          </span>
+          Predict Interaction
+        </a>
+        <a href="#simulation" class="nav-link" data-page="simulation">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 6v6l4 2"/>
+            </svg>
+          </span>
+          Simulation
+        </a>
+        <a href="#results" class="nav-link" data-page="results">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 20V10"/>
+              <path d="M12 20V4"/>
+              <path d="M6 20v-6"/>
+            </svg>
+          </span>
+          Results
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <span class="nav-label">LEARN</span>
+        <a href="#how-it-works" class="nav-link" data-page="how-it-works">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+          </span>
+          How It Works
+        </a>
+        <a href="#glossary" class="nav-link" data-page="glossary">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+            </svg>
+          </span>
+          Glossary
+        </a>
+        <a href="#datasets" class="nav-link" data-page="datasets">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <ellipse cx="12" cy="5" rx="9" ry="3"/>
+              <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+              <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+            </svg>
+          </span>
+          Datasets
+        </a>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="model-status">
+          <div class="status-indicator" id="model-status-dot"></div>
+          <div class="status-text">
+            <span class="status-label">Model Status</span>
+            <span class="status-value" id="model-status-text">Checking...</span>
+          </div>
+        </div>
+        <div class="version-info">
+          <span>NeuroPharma AI v2.1</span>
+          <span class="version-date">2026</span>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Dashboard Page -->
+      <section id="dashboard" class="page active">
+        <header class="page-header">
+          <div class="header-content">
+            <div class="breadcrumb">
+              <span class="breadcrumb-item">Home</span>
+              <span class="breadcrumb-separator">/</span>
+              <span class="breadcrumb-item active">Dashboard</span>
+            </div>
+            <h1 class="page-title">Drug Discovery Dashboard</h1>
+            <p class="page-subtitle">AI-powered drug-target interaction prediction using Graph Neural Networks</p>
+          </div>
+          <div class="header-actions">
+            <button class="btn btn-secondary" id="refresh-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M23 4v6h-6"/>
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+              </svg>
+              Refresh
+            </button>
+          </div>
+        </header>
+
+        <!-- Hero Section -->
+        <div class="hero-section">
+          <div class="hero-content">
+            <div class="hero-badge">
+              <span class="badge-icon">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+              </span>
+              <span>Powered by Graph Neural Networks</span>
+            </div>
+            <h2 class="hero-title">Discover Drug-Target<br><span class="gradient-text">Interactions Faster</span></h2>
+            <p class="hero-description">Leverage advanced AI to predict binding affinities between drug molecules and protein targets with high accuracy.</p>
+            <div class="hero-actions">
+              <a href="#predict" class="btn btn-primary btn-lg" data-navigate="predict">
+                <span>Start Prediction</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                  <polyline points="12 5 19 12 12 19"/>
+                </svg>
+              </a>
+              <a href="#how-it-works" class="btn btn-outline btn-lg" data-navigate="how-it-works">Learn More</a>
+            </div>
+          </div>
+          <div class="hero-visual">
+            <div class="molecule-animation">
+              <div class="atom atom-1"></div>
+              <div class="atom atom-2"></div>
+              <div class="atom atom-3"></div>
+              <div class="atom atom-4"></div>
+              <div class="atom atom-5"></div>
+              <div class="bond bond-1"></div>
+              <div class="bond bond-2"></div>
+              <div class="bond bond-3"></div>
+              <div class="bond bond-4"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+              </svg>
+            </div>
+            <div class="stat-content">
+              <span class="stat-value" id="stat-datasets">2</span>
+              <span class="stat-label">Datasets</span>
+              <span class="stat-detail">Davis &amp; KIBA benchmarks</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </div>
+            <div class="stat-content">
+              <span class="stat-value" id="stat-interactions">--</span>
+              <span class="stat-label">Interactions</span>
+              <span class="stat-detail">Measured drug-target pairs</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon purple">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 20V10"/>
+                <path d="M18 20V4"/>
+                <path d="M6 20v-4"/>
+              </svg>
+            </div>
+            <div class="stat-content">
+              <span class="stat-value" id="stat-accuracy">--</span>
+              <span class="stat-label">CI Score</span>
+              <span class="stat-detail" id="stat-accuracy-detail">Concordance Index (test set)</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon orange">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="8" r="7"/>
+                <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>
+              </svg>
+            </div>
+            <div class="stat-content">
+              <span class="stat-value" id="stat-models">6</span>
+              <span class="stat-label">Model Types</span>
+              <span class="stat-detail">Trained &amp; evaluated</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="section-header">
+          <h3>Quick Actions</h3>
+          <p>Get started with common tasks</p>
+        </div>
+        <div class="quick-actions">
+          <div class="action-card" data-navigate="predict">
+            <div class="action-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                <path d="M2 17l10 5 10-5"/>
+                <path d="M2 12l10 5 10-5"/>
+              </svg>
+            </div>
+            <h4>Predict Binding</h4>
+            <p>Enter a drug SMILES and protein sequence to predict binding affinity</p>
+          </div>
+          <div class="action-card" data-navigate="simulation">
+            <div class="action-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+                <line x1="9" y1="9" x2="9.01" y2="9"/>
+                <line x1="15" y1="9" x2="15.01" y2="9"/>
+              </svg>
+            </div>
+            <h4>Run Simulation</h4>
+            <p>Simulate molecular interactions and visualize binding patterns</p>
+          </div>
+          <div class="action-card" data-navigate="results">
+            <div class="action-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="20" x2="18" y2="10"/>
+                <line x1="12" y1="20" x2="12" y2="4"/>
+                <line x1="6" y1="20" x2="6" y2="14"/>
+              </svg>
+            </div>
+            <h4>View Results</h4>
+            <p>Explore experiment results and compare model performance</p>
+          </div>
+          <div class="action-card" data-navigate="how-it-works">
+            <div class="action-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+            </div>
+            <h4>Learn How It Works</h4>
+            <p>Understand the science behind drug-target interaction prediction</p>
+          </div>
+        </div>
+
+        <!-- Recent Results -->
+        <div class="section-header">
+          <h3>Recent Experiment Results</h3>
+          <a href="#results" class="section-link" data-navigate="results">View All</a>
+        </div>
+        <div class="results-table-container">
+          <table class="results-table">
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>Dataset</th>
+                <th>Split</th>
+                <th>CI Score</th>
+                <th>RMSE</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="recent-results">
+              <!-- Populated by JavaScript -->
+            </tbody>
+          </table>
+          <div class="empty-state" id="dashboard-empty">
+            <div class="empty-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+              </svg>
+            </div>
+            <h4>No experiments yet</h4>
+            <p>Run your first experiment to see results here</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Predict Page -->
+      <section id="predict" class="page">
+        <header class="page-header">
+          <div class="header-content">
+            <div class="breadcrumb">
+              <span class="breadcrumb-item">Home</span>
+              <span class="breadcrumb-separator">/</span>
+              <span class="breadcrumb-item active">Predict Interaction</span>
+            </div>
+            <h1 class="page-title">Predict Drug-Target Interaction</h1>
+            <p class="page-subtitle">Enter a drug molecule and protein target to predict their binding affinity</p>
+          </div>
+        </header>
+
+        <div class="prediction-container">
+          <!-- Input Section -->
+          <div class="input-section">
+            <div class="input-card">
+              <div class="input-header">
+                <div class="input-icon drug">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"/>
+                    <circle cx="6" cy="6" r="2"/>
+                    <circle cx="18" cy="6" r="2"/>
+                    <circle cx="6" cy="18" r="2"/>
+                    <circle cx="18" cy="18" r="2"/>
+                    <line x1="9" y1="9" x2="8" y2="8"/>
+                    <line x1="15" y1="9" x2="16" y2="8"/>
+                    <line x1="9" y1="15" x2="8" y2="16"/>
+                    <line x1="15" y1="15" x2="16" y2="16"/>
+                  </svg>
+                </div>
+                <div>
+                  <h3>Drug Molecule</h3>
+                  <p>Enter SMILES notation</p>
+                </div>
+                <button class="info-btn" data-tooltip="SMILES (Simplified Molecular Input Line Entry System) is a text notation for representing chemical structures.">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="16" x2="12" y2="12"/>
+                    <line x1="12" y1="8" x2="12.01" y2="8"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="input-body">
+                <textarea id="drug-input" class="text-input" placeholder="Enter SMILES notation (e.g., CC(=O)Nc1ccc(O)cc1 for Acetaminophen)" rows="3"></textarea>
+                <div class="input-examples" id="drug-examples">
+                  <span class="example-label">Examples:</span>
+                  <button class="example-btn" data-smiles="CC(=O)Nc1ccc(O)cc1" data-name="Acetaminophen">Acetaminophen</button>
+                  <button class="example-btn" data-smiles="CC(C)Cc1ccc(cc1)C(C)C(=O)O" data-name="Ibuprofen">Ibuprofen</button>
+                  <button class="example-btn" data-smiles="CN1C=NC2=C1C(=O)N(C(=O)N2C)C" data-name="Caffeine">Caffeine</button>
+                  <button class="example-btn" data-smiles="Cc1ccc(cc1Nc2nccc(n2)c3cccnc3)NC(=O)c4ccc(cc4)CN5CCN(CC5)C" data-name="Imatinib">Imatinib</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="input-card">
+              <div class="input-header">
+                <div class="input-icon protein">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                    <path d="M4 10h16"/>
+                    <path d="M10 4v16"/>
+                  </svg>
+                </div>
+                <div>
+                  <h3>Target Protein</h3>
+                  <p>Enter amino acid sequence</p>
+                </div>
+                <button class="info-btn" data-tooltip="Enter the protein sequence using standard one-letter amino acid codes (e.g., MVLSPADKTNVK...). The sequence should be at least 50 amino acids long.">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="16" x2="12" y2="12"/>
+                    <line x1="12" y1="8" x2="12.01" y2="8"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="input-body">
+                <textarea id="protein-input" class="text-input" placeholder="Enter amino acid sequence (e.g., MENFQKVEKIGEGTYGVVYK...)" rows="5"></textarea>
+                <div class="input-examples" id="target-examples">
+                  <span class="example-label">Examples:</span>
+                  <button class="example-btn" data-sequence="CDK2" data-name="CDK2 Kinase">CDK2 Kinase</button>
+                  <button class="example-btn" data-sequence="EGFR" data-name="EGFR">EGFR</button>
+                  <button class="example-btn" data-sequence="ACE2" data-name="ACE2">ACE2</button>
+                </div>
+              </div>
+            </div>
+
+            <button class="btn btn-primary btn-lg btn-full" id="predict-btn">
+              <span class="btn-content">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"/>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                <span>Predict Binding Affinity</span>
+              </span>
+              <span class="btn-loading">
+                <div class="spinner"></div>
+                <span>Analyzing...</span>
+              </span>
+            </button>
+          </div>
+
+          <!-- Results Section -->
+          <div class="results-section" id="prediction-results">
+            <div class="results-placeholder">
+              <div class="placeholder-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                  <path d="M2 17l10 5 10-5"/>
+                  <path d="M2 12l10 5 10-5"/>
+                </svg>
+              </div>
+              <h3>Ready to Predict</h3>
+              <p>Enter a drug molecule and protein sequence to see prediction results</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Simulation Page -->
+      <section id="simulation" class="page">
+        <header class="page-header">
+          <div class="header-content">
+            <div class="breadcrumb">
+              <span class="breadcrumb-item">Home</span>
+              <span class="breadcrumb-separator">/</span>
+              <span class="breadcrumb-item active">Simulation</span>
+            </div>
+            <h1 class="page-title">Molecular Interaction Simulation</h1>
+            <p class="page-subtitle">Visualize and explore drug-protein binding mechanisms</p>
+          </div>
+        </header>
+
+        <div class="simulation-container">
+          <div class="simulation-viewer">
+            <div class="viewer-toolbar">
+              <span class="toolbar-btn active" style="cursor: default;">Attention map</span>
+            </div>
+            <div class="viewer-canvas" id="simulation-canvas">
+              <div class="simulation-placeholder">
+                <div class="placeholder-animation">
+                  <div class="pulse-ring"></div>
+                  <div class="pulse-ring delay-1"></div>
+                  <div class="pulse-ring delay-2"></div>
+                  <div class="center-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"/>
+                      <path d="M12 6v6l4 2"/>
+                    </svg>
+                  </div>
+                </div>
+                <p>Run a prediction to visualize the interaction</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="simulation-panel">
+            <div class="panel-section">
+              <h4>How to read this map</h4>
+              <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                Run a prediction on the <a href="#predict" data-navigate="predict">Predict</a> page first.
+                The map is drawn from the trained model's own signals, not from a docking simulation:
+                atom saliency (how much each atom changes the predicted pKd) and the cross-attention
+                the model puts on each part of the protein sequence.
+              </p>
+            </div>
+
+            <div class="panel-section" id="sim-results-panel" style="display: none;">
+              <h4>Simulation Results</h4>
+              <div class="result-metrics" id="sim-metrics">
+                <!-- Populated by JavaScript -->
+              </div>
+            </div>
+
+            <div class="panel-section">
+              <h4>Legend</h4>
+              <div class="interaction-legend">
+                <div class="legend-item">
+                  <span class="legend-color" style="background: #4a9d75;"></span>
+                  <span>Inner ring: drug atoms (darker = higher saliency)</span>
+                </div>
+                <div class="legend-item">
+                  <span class="legend-color" style="background: #a8d4e6;"></span>
+                  <span>Outer ring: top-attention protein segments (label = first residue)</span>
+                </div>
+                <div class="legend-item">
+                  <span class="legend-color" style="background: #d4a64a;"></span>
+                  <span>Lines: relative attention strength (colour = predicted binding class)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Results Page -->
+      <section id="results" class="page">
+        <header class="page-header">
+          <div class="header-content">
+            <div class="breadcrumb">
+              <span class="breadcrumb-item">Home</span>
+              <span class="breadcrumb-separator">/</span>
+              <span class="breadcrumb-item active">Results</span>
+            </div>
+            <h1 class="page-title">Experiment Results</h1>
+            <p class="page-subtitle">Compare model performance across datasets and splits</p>
+          </div>
+          <div class="header-actions">
+            <select id="results-dataset-filter" class="select-input">
+              <option value="all">All Datasets</option>
+              <option value="davis">Davis</option>
+              <option value="kiba">KIBA</option>
+            </select>
+            <select id="results-metric-filter" class="select-input">
+              <option value="ci">CI (Concordance Index)</option>
+              <option value="rmse">RMSE</option>
+              <option value="pearson">Pearson Correlation</option>
+            </select>
+          </div>
+        </header>
+
+        <div class="results-overview">
+          <div class="overview-card">
+            <h4>Best CI Score</h4>
+            <div class="overview-value" id="best-ci">--</div>
+            <p class="overview-detail" id="best-ci-detail">-</p>
+          </div>
+          <div class="overview-card">
+            <h4>Best RMSE</h4>
+            <div class="overview-value" id="best-rmse">--</div>
+            <p class="overview-detail" id="best-rmse-detail">-</p>
+          </div>
+          <div class="overview-card">
+            <h4>Total Experiments</h4>
+            <div class="overview-value" id="total-experiments">0</div>
+            <p class="overview-detail">Across all configurations</p>
+          </div>
+        </div>
+
+        <div class="results-content">
+          <div class="results-table-container large">
+            <table class="results-table">
+              <thead>
+                <tr>
+                  <th>Model</th>
+                  <th>Dataset</th>
+                  <th>Split</th>
+                  <th>Seeds</th>
+                  <th>CI</th>
+                  <th>RMSE</th>
+                  <th>Pearson</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="full-results-body">
+                <!-- Populated by JavaScript -->
+              </tbody>
+            </table>
+            <div class="empty-state" id="results-empty">
+              <div class="empty-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <line x1="18" y1="20" x2="18" y2="10"/>
+                  <line x1="12" y1="20" x2="12" y2="4"/>
+                  <line x1="6" y1="20" x2="6" y2="14"/>
+                </svg>
+              </div>
+              <h4>No experiments found</h4>
+              <p>Run experiments using the training scripts, then rebuild the dashboard</p>
+              <code>python scripts/run_experiment.py --model proposed --dataset davis</code>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- How It Works Page -->
+      <section id="how-it-works" class="page">
+        <header class="page-header">
+          <div class="header-content">
+            <div class="breadcrumb">
+              <span class="breadcrumb-item">Home</span>
+              <span class="breadcrumb-separator">/</span>
+              <span class="breadcrumb-item active">How It Works</span>
+            </div>
+            <h1 class="page-title">How It Works</h1>
+            <p class="page-subtitle">Understanding the science behind AI-powered drug discovery</p>
+          </div>
+        </header>
+
+        <div class="how-it-works-content">
+          <!-- Overview Section -->
+          <div class="hiw-section">
+            <div class="hiw-header">
+              <div class="hiw-number">01</div>
+              <h2>The Big Picture</h2>
+            </div>
+            <div class="hiw-body">
+              <p class="hiw-intro">Drug discovery traditionally takes <strong>10-15 years</strong> and costs <strong>$2-3 billion</strong> to bring a new drug to market. Our AI system accelerates this by predicting which drug molecules will bind to disease-related proteins.</p>
+
+              <div class="concept-cards">
+                <div class="concept-card">
+                  <div class="concept-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="3"/>
+                      <circle cx="6" cy="6" r="2"/>
+                      <circle cx="18" cy="6" r="2"/>
+                      <circle cx="6" cy="18" r="2"/>
+                    </svg>
+                  </div>
+                  <h4>Drug Molecules</h4>
+                  <p>Small chemical compounds that can interact with proteins in the body to treat diseases. We represent them as <span class="term" data-term="molecular-graph">molecular graphs</span>.</p>
+                </div>
+                <div class="concept-card">
+                  <div class="concept-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M12 3v18"/>
+                      <path d="M8 6c0 1.5 2 3 4 3s4-1.5 4-3"/>
+                      <path d="M8 12c0 1.5 2 3 4 3s4-1.5 4-3"/>
+                      <path d="M8 18c0 1.5 2 3 4 3s4-1.5 4-3"/>
+                    </svg>
+                  </div>
+                  <h4>Target Proteins</h4>
+                  <p>Large biological molecules made of amino acids. They perform essential functions in cells and are often the targets of drugs.</p>
+                </div>
+                <div class="concept-card">
+                  <div class="concept-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M4 12h16"/>
+                      <path d="M12 4v16"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  </div>
+                  <h4>Binding Affinity</h4>
+                  <p>How strongly a drug binds to a protein. Measured in <span class="term" data-term="pkd">pKd units</span> - higher values mean stronger binding.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pipeline Section -->
+          <div class="hiw-section">
+            <div class="hiw-header">
+              <div class="hiw-number">02</div>
+              <h2>The Prediction Pipeline</h2>
+            </div>
+            <div class="hiw-body">
+              <div class="pipeline">
+                <div class="pipeline-step">
+                  <div class="step-badge">Step 1</div>
+                  <div class="step-content">
+                    <h4>Input Processing</h4>
+                    <p>Drug molecules are converted from <span class="term" data-term="smiles">SMILES notation</span> into graphs where atoms are nodes and bonds are edges. Each atom gets a one-hot feature vector (element, degree, formal charge, hydrogen count, hybridization, aromaticity, ring membership).</p>
+                    <div class="step-example">
+                      <code>CC(=O)Nc1ccc(O)cc1</code>
+                      <span class="arrow">→</span>
+                      <span>Graph with 11 atoms, 11 bonds</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="pipeline-step">
+                  <div class="step-badge">Step 2</div>
+                  <div class="step-content">
+                    <h4>Drug Encoding (GNN)</h4>
+                    <p>A <span class="term" data-term="gnn">Graph Neural Network</span> processes the molecular graph. Each layer aggregates information from neighboring atoms, learning the molecule's structure and properties.</p>
+                    <div class="step-visual">
+                      <div class="gnn-layer">
+                        <div class="gnn-node n1"></div>
+                        <div class="gnn-node n2"></div>
+                        <div class="gnn-node n3"></div>
+                        <div class="gnn-edge e1"></div>
+                        <div class="gnn-edge e2"></div>
+                      </div>
+                      <span class="arrow">→</span>
+                      <div class="gnn-layer">
+                        <div class="gnn-node n1 processed"></div>
+                        <div class="gnn-node n2 processed"></div>
+                        <div class="gnn-node n3 processed"></div>
+                      </div>
+                      <span class="arrow">→</span>
+                      <div class="embedding-vector">
+                        <span>128-dim vector</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="pipeline-step">
+                  <div class="step-badge">Step 3</div>
+                  <div class="step-content">
+                    <h4>Protein Encoding (1D-CNN)</h4>
+                    <p>Protein sequences (up to 1,000 residues) are embedded and passed through parallel 1D convolutions with kernel sizes 3, 5 and 7, which detect local amino-acid motifs. Every residue keeps its own embedding so the fusion step can attend to it.</p>
+                    <div class="step-example">
+                      <code>MENFQKVEKIG...</code>
+                      <span class="arrow">→</span>
+                      <span>Per-residue embeddings + global protein embedding</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="pipeline-step">
+                  <div class="step-badge">Step 4</div>
+                  <div class="step-content">
+                    <h4>Cross-Attention Fusion</h4>
+                    <p><span class="term" data-term="cross-attention">Cross-attention</span> learns which drug atoms interact with which protein residues. This provides interpretable predictions - we can see where binding occurs!</p>
+                    <div class="attention-visual">
+                      <div class="attention-side drug-side">
+                        <span>Drug Atoms</span>
+                        <div class="attention-dots">
+                          <span></span><span></span><span></span><span></span>
+                        </div>
+                      </div>
+                      <div class="attention-lines">
+                        <div class="att-line l1"></div>
+                        <div class="att-line l2"></div>
+                        <div class="att-line l3"></div>
+                      </div>
+                      <div class="attention-side protein-side">
+                        <span>Protein Residues</span>
+                        <div class="attention-dots">
+                          <span></span><span></span><span></span><span></span><span></span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="pipeline-step">
+                  <div class="step-badge">Step 5</div>
+                  <div class="step-content">
+                    <h4>Affinity Prediction</h4>
+                    <p>A multi-layer perceptron (<span class="term" data-term="mlp">MLP</span>) takes the fused representation and outputs a binding affinity score. An ensemble of independently-seeded models gives an uncertainty estimate (their disagreement).</p>
+                    <div class="step-output">
+                      <div class="output-value">
+                        <span class="label">pKd</span>
+                        <span class="value">e.g. 7.4</span>
+                      </div>
+                      <div class="output-value">
+                        <span class="label">Uncertainty</span>
+                        <span class="value">&plusmn; ensemble std</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Input/Output Section -->
+          <div class="hiw-section">
+            <div class="hiw-header">
+              <div class="hiw-number">03</div>
+              <h2>What You Provide & What You Get</h2>
+            </div>
+            <div class="hiw-body">
+              <div class="io-grid">
+                <div class="io-card input">
+                  <h4>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="5 12 12 5 19 12"/>
+                      <line x1="12" y1="5" x2="12" y2="19"/>
+                    </svg>
+                    Your Input
+                  </h4>
+                  <div class="io-item">
+                    <span class="io-label">Drug SMILES</span>
+                    <span class="io-example">CC(=O)Nc1ccc(O)cc1</span>
+                    <span class="io-desc">A text representation of the drug's chemical structure</span>
+                  </div>
+                  <div class="io-item">
+                    <span class="io-label">Protein Sequence</span>
+                    <span class="io-example">MENFQKVEKIGEGTYGVVYK...</span>
+                    <span class="io-desc">The amino acid sequence of the target protein</span>
+                  </div>
+                </div>
+
+                <div class="io-arrow">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                    <polyline points="12 5 19 12 12 19"/>
+                  </svg>
+                </div>
+
+                <div class="io-card output">
+                  <h4>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="19 12 12 19 5 12"/>
+                      <line x1="12" y1="19" x2="12" y2="5"/>
+                    </svg>
+                    AI Output
+                  </h4>
+                  <div class="io-item">
+                    <span class="io-label">Binding Affinity (pKd)</span>
+                    <span class="io-example highlight">e.g. 7.4</span>
+                    <span class="io-desc">Predicted strength of binding (higher = stronger)</span>
+                  </div>
+                  <div class="io-item">
+                    <span class="io-label">Interaction Type</span>
+                    <span class="io-example">Strong Binder</span>
+                    <span class="io-desc">Classification based on affinity threshold</span>
+                  </div>
+                  <div class="io-item">
+                    <span class="io-label">Confidence</span>
+                    <span class="io-example">&plusmn; std across the ensemble</span>
+                    <span class="io-desc">Agreement between independently trained models plus similarity of the drug to the training set</span>
+                  </div>
+                  <div class="io-item">
+                    <span class="io-label">Binding Site</span>
+                    <span class="io-example">Top attention regions</span>
+                    <span class="io-desc">Protein segments receiving the most cross-attention (a hypothesis, not a docked pose)</span>
+                  </div>
+                  <div class="io-item">
+                    <span class="io-label">ADMET Properties</span>
+                    <span class="io-example">Absorption, Toxicity...</span>
+                    <span class="io-desc">Rule-based drug-likeness and safety flags computed with RDKit (Lipinski, TPSA, LogP)</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Model Architecture Section -->
+          <div class="hiw-section">
+            <div class="hiw-header">
+              <div class="hiw-number">04</div>
+              <h2>Model Architecture</h2>
+            </div>
+            <div class="hiw-body">
+              <div class="architecture-diagram">
+                <div class="arch-column">
+                  <div class="arch-block input-block">
+                    <h5>Drug Input</h5>
+                    <span>SMILES → Graph</span>
+                  </div>
+                  <div class="arch-block encoder-block drug-encoder">
+                    <h5>Drug Encoder</h5>
+                    <span>GIN (graph isomorphism network)</span>
+                    <span class="arch-detail">3 layers, 128 dims</span>
+                  </div>
+                </div>
+
+                <div class="arch-fusion">
+                  <div class="fusion-line top"></div>
+                  <div class="arch-block fusion-block">
+                    <h5>Cross-Attention</h5>
+                    <span>Atoms &rarr; residues</span>
+                    <span class="arch-detail">4 heads</span>
+                  </div>
+                  <div class="fusion-line bottom"></div>
+                </div>
+
+                <div class="arch-column">
+                  <div class="arch-block input-block">
+                    <h5>Protein Input</h5>
+                    <span>Sequence → Embeddings</span>
+                  </div>
+                  <div class="arch-block encoder-block protein-encoder">
+                    <h5>Protein Encoder</h5>
+                    <span>Multi-kernel 1D-CNN</span>
+                    <span class="arch-detail">kernels 3 / 5 / 7, 128 dims</span>
+                  </div>
+                </div>
+
+                <div class="arch-output">
+                  <div class="arch-block predictor-block">
+                    <h5>Prediction Head</h5>
+                    <span>MLP 256 &rarr; 128 &rarr; 1</span>
+                  </div>
+                  <div class="arch-block output-block">
+                    <h5>Output</h5>
+                    <span>pKd (seed-ensemble mean &plusmn; std)</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Evaluation Section -->
+          <div class="hiw-section">
+            <div class="hiw-header">
+              <div class="hiw-number">05</div>
+              <h2>How We Measure Accuracy</h2>
+            </div>
+            <div class="hiw-body">
+              <div class="metrics-grid">
+                <div class="metric-card">
+                  <div class="metric-icon ci">CI</div>
+                  <h4>Concordance Index</h4>
+                  <p>Measures ranking accuracy - if drug A binds stronger than drug B in reality, does the model predict the same ordering?</p>
+                  <div class="metric-range">
+                    <span class="range-label">0.5 = Random</span>
+                    <div class="range-bar">
+                      <div class="range-fill" id="hiw-ci-bar" style="width: 0%;"></div>
+                    </div>
+                    <span class="range-label">1.0 = Perfect</span>
+                  </div>
+                  <span class="metric-value" id="hiw-ci">Our Score: --</span>
+                </div>
+
+                <div class="metric-card">
+                  <div class="metric-icon rmse">RMSE</div>
+                  <h4>Root Mean Square Error</h4>
+                  <p>Average difference between predicted and actual pKd values. Lower is better.</p>
+                  <div class="metric-range">
+                    <span class="range-label">0.0 = Perfect</span>
+                    <div class="range-bar inverse">
+                      <div class="range-fill" id="hiw-rmse-bar" style="width: 0%;"></div>
+                    </div>
+                    <span class="range-label">2.0 = Poor</span>
+                  </div>
+                  <span class="metric-value" id="hiw-rmse">Our Score: --</span>
+                </div>
+
+                <div class="metric-card">
+                  <div class="metric-icon pearson">r</div>
+                  <h4>Pearson Correlation</h4>
+                  <p>Linear correlation between predicted and actual values. Higher is better.</p>
+                  <div class="metric-range">
+                    <span class="range-label">0.0 = None</span>
+                    <div class="range-bar">
+                      <div class="range-fill" id="hiw-pearson-bar" style="width: 0%;"></div>
+                    </div>
+                    <span class="range-label">1.0 = Perfect</span>
+                  </div>
+                  <span class="metric-value" id="hiw-pearson">Our Score: --</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Glossary Page -->
+      <section id="glossary" class="page">
+        <header class="page-header">
+          <div class="header-content">
+            <div class="breadcrumb">
+              <span class="breadcrumb-item">Home</span>
+              <span class="breadcrumb-separator">/</span>
+              <span class="breadcrumb-item active">Glossary</span>
+            </div>
+            <h1 class="page-title">Glossary of Terms</h1>
+            <p class="page-subtitle">Definitions of key concepts in drug discovery and machine learning</p>
+          </div>
+          <div class="header-actions">
+            <input type="text" class="search-input" id="glossary-search" placeholder="Search terms...">
+          </div>
+        </header>
+
+        <div class="glossary-content">
+          <div class="glossary-nav">
+            <button class="glossary-nav-btn active" data-category="all">All</button>
+            <button class="glossary-nav-btn" data-category="chemistry">Chemistry</button>
+            <button class="glossary-nav-btn" data-category="biology">Biology</button>
+            <button class="glossary-nav-btn" data-category="ml">Machine Learning</button>
+            <button class="glossary-nav-btn" data-category="metrics">Metrics</button>
+          </div>
+
+          <div class="glossary-list" id="glossary-list">
+            <!-- Populated by JavaScript -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Datasets Page -->
+      <section id="datasets" class="page">
+        <header class="page-header">
+          <div class="header-content">
+            <div class="breadcrumb">
+              <span class="breadcrumb-item">Home</span>
+              <span class="breadcrumb-separator">/</span>
+              <span class="breadcrumb-item active">Datasets</span>
+            </div>
+            <h1 class="page-title">Training Datasets</h1>
+            <p class="page-subtitle">Benchmark datasets used for model training and evaluation</p>
+          </div>
+        </header>
+
+        <div class="datasets-content">
+          <div class="datasets-grid" id="datasets-grid">
+            <!-- Populated by JavaScript -->
+          </div>
+
+          <div class="section-header">
+            <h3>Data Split Strategies</h3>
+            <p>How we ensure fair model evaluation</p>
+          </div>
+
+          <div class="splits-grid">
+            <div class="split-card warm">
+              <div class="split-header">
+                <span class="split-icon"></span>
+                <h4>Warm Split</h4>
+              </div>
+              <p>Random split of interactions. Both drugs and proteins in test set may appear in training.</p>
+              <div class="split-visual-small">
+                <div class="visual-label">Difficulty: Easy</div>
+                <div class="difficulty-bar easy"></div>
+              </div>
+            </div>
+
+            <div class="split-card cold-drug">
+              <div class="split-header">
+                <span class="split-icon"></span>
+                <h4>Cold Drug</h4>
+              </div>
+              <p>Test on unseen drug molecules. Tests generalization to new chemical scaffolds.</p>
+              <div class="split-visual-small">
+                <div class="visual-label">Difficulty: Medium</div>
+                <div class="difficulty-bar medium"></div>
+              </div>
+            </div>
+
+            <div class="split-card cold-target">
+              <div class="split-header">
+                <span class="split-icon"></span>
+                <h4>Cold Target</h4>
+              </div>
+              <p>Test on unseen protein targets. Tests ability to predict for new disease targets.</p>
+              <div class="split-visual-small">
+                <div class="visual-label">Difficulty: Medium</div>
+                <div class="difficulty-bar medium"></div>
+              </div>
+            </div>
+
+            <div class="split-card cold-both">
+              <div class="split-header">
+                <span class="split-icon"></span>
+                <h4>Cold Both</h4>
+              </div>
+              <p>Test on completely unseen drug-protein pairs. The hardest and most realistic scenario.</p>
+              <div class="split-visual-small">
+                <div class="visual-label">Difficulty: Hard</div>
+                <div class="difficulty-bar hard"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Tooltip -->
+  <div class="tooltip" id="tooltip"></div>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loading-overlay">
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <p>Analyzing molecular interactions...</p>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

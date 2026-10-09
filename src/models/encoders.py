@@ -25,6 +25,41 @@ except ImportError:
     PYG_AVAILABLE = False
 
 
+def unique_rows(x: torch.Tensor):
+    """
+    Deduplicate identical rows of a (batch, seq_len) index tensor.
+
+    Returns (unique_rows, inverse) such that unique_rows[inverse] == x.
+    Benchmarks have few distinct proteins (442 in Davis, 229 in KIBA), so a
+    batch built from a handful of proteins only needs each one encoded once.
+    The result is numerically identical to encoding every row.
+    """
+    uniq, inverse = torch.unique(x, dim=0, return_inverse=True)
+    return uniq, inverse
+
+
+def masked_global_max_pool(h: torch.Tensor, valid_len: torch.Tensor, conv: nn.Conv1d) -> torch.Tensor:
+    """
+    Global max-pool over conv outputs, keeping only the positions that also
+    exist when the conv runs on the unpadded sequence.
+
+    Args:
+        h: Conv activations (batch, channels, out_len)
+        valid_len: Number of real (non-pad) tokens per sample (batch,)
+        conv: The Conv1d that produced h (for kernel size and padding)
+
+    On an unpadded input of length L the conv yields L + 2p - k + 1 outputs,
+    so positions beyond that are windows reaching into batch padding. Masking
+    them makes the pooled embedding independent of how much a batch is padded.
+    """
+    k, p = conv.kernel_size[0], conv.padding[0]
+    n_valid = valid_len + 2 * p - k + 1
+    positions = torch.arange(h.size(2), device=h.device).unsqueeze(0)
+    keep = positions < n_valid.unsqueeze(1)  # (batch, out_len)
+    h = h.masked_fill(~keep.unsqueeze(1), float("-inf"))
+    return h.max(dim=2).values
+
+
 class SMILESEncoder(nn.Module):
     """
     CNN encoder for SMILES strings (DeepDTA baseline).
@@ -62,17 +97,19 @@ class SMILESEncoder(nn.Module):
         Returns:
             Drug embeddings (batch_size, output_dim)
         """
+        valid_len = (x != 0).sum(dim=1).clamp(min=1)
+
         # Embed: (batch, seq_len, embed_dim)
         x = self.embedding(x)
 
         # Transpose for conv: (batch, embed_dim, seq_len)
         x = x.transpose(1, 2)
 
-        # Apply each conv and pool
+        # Apply each conv and pool (padding positions excluded)
         conv_outputs = []
         for conv in self.convs:
             h = F.relu(conv(x))
-            h = F.max_pool1d(h, h.size(2)).squeeze(2)  # Global max pool
+            h = masked_global_max_pool(h, valid_len, conv)
             conv_outputs.append(h)
 
         # Concatenate conv outputs
@@ -92,7 +129,7 @@ class ProteinCNNEncoder(nn.Module):
 
     def __init__(
         self,
-        vocab_size: int = 21,  # 20 amino acids + unknown
+        vocab_size: int = 22,  # padding + 20 amino acids + unknown
         embed_dim: int = 128,
         num_filters: int = 32,
         kernel_sizes: tuple = (4, 8, 12),
@@ -119,13 +156,20 @@ class ProteinCNNEncoder(nn.Module):
         Returns:
             Protein embeddings (batch_size, output_dim)
         """
+        uniq, inverse = unique_rows(x)
+        if uniq.size(0) < x.size(0):
+            return self._encode(uniq)[inverse]
+        return self._encode(x)
+
+    def _encode(self, x: torch.Tensor) -> torch.Tensor:
+        valid_len = (x != 0).sum(dim=1).clamp(min=1)
         x = self.embedding(x)
         x = x.transpose(1, 2)
 
         conv_outputs = []
         for conv in self.convs:
             h = F.relu(conv(x))
-            h = F.max_pool1d(h, h.size(2)).squeeze(2)
+            h = masked_global_max_pool(h, valid_len, conv)
             conv_outputs.append(h)
 
         x = torch.cat(conv_outputs, dim=1)
@@ -144,9 +188,9 @@ class ProteinCNNEncoderWithResidues(nn.Module):
 
     def __init__(
         self,
-        vocab_size: int = 21,
+        vocab_size: int = 22,
         embed_dim: int = 128,
-        num_filters: int = 128,
+        num_filters: int = 64,
         kernel_sizes: tuple = (3, 5, 7),
         output_dim: int = 128,
         dropout: float = 0.1,
@@ -179,6 +223,24 @@ class ProteinCNNEncoderWithResidues(nn.Module):
             Else:
                 pooled_embedding: (batch_size, output_dim)
         """
+        pooled, residue_features, mask, inverse = self.encode_unique(x)
+        pooled = pooled[inverse]
+        if return_residues:
+            return pooled, residue_features[inverse], mask[inverse]
+        return pooled
+
+    def encode_unique(self, x: torch.Tensor):
+        """
+        Encode each distinct sequence in the batch once.
+
+        Returns:
+            pooled: (n_unique, output_dim)
+            residue_features: (n_unique, seq_len, output_dim)
+            mask: (n_unique, seq_len)
+            inverse: (batch_size,) index of each sample's row in the unique tensors
+        """
+        x, inverse = unique_rows(x)
+
         # Create mask for padding
         mask = (x != 0)  # (batch_size, seq_len)
 
@@ -201,9 +263,7 @@ class ProteinCNNEncoderWithResidues(nn.Module):
         mask_expanded = mask.unsqueeze(-1).float()
         pooled = (residue_features * mask_expanded).sum(dim=1) / mask_expanded.sum(dim=1).clamp(min=1)
 
-        if return_residues:
-            return pooled, residue_features, mask
-        return pooled
+        return pooled, residue_features, mask, inverse
 
 
 class DrugGNNEncoder(nn.Module):

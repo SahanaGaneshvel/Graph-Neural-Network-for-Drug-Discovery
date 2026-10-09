@@ -1,0 +1,62 @@
+{
+  "config": {
+    "experiment_name": "dti_experiment",
+    "seed": 42,
+    "dataset": "davis",
+    "split_type": "cold_drug",
+    "test_ratio": 0.2,
+    "val_ratio": 0.1,
+    "model_type": "graphdta_gin",
+    "hidden_dim": 32,
+    "gnn_layers": 3,
+    "dropout": 0.1,
+    "fusion_type": "cross_attention",
+    "learning_rate": 0.001,
+    "weight_decay": 1e-05,
+    "batch_size": 512,
+    "max_epochs": 1,
+    "patience": 50,
+    "grad_clip_norm": 5.0,
+    "output_dir": "experiments\\real_validation_sweeps\\sweep_20260819_095241\\graphdta_gin_davis_cold_drug",
+    "data_dir": "data/raw"
+  },
+  "git_commit": "98dab72",
+  "timestamp": "20260819_095352",
+  "training": {
+    "history": {
+      "train_loss": [
+        5.1447530402693635
+      ],
+      "val_loss": [
+        0.46198950211207074
+      ],
+      "val_metrics": [
+        {
+          "mse": 0.4536939263343811,
+          "rmse": 0.6735680562009908,
+          "ci": 0.5634283805212291,
+          "rm2": 0.0,
+          "pearson": 0.09956871344063618,
+          "spearman": 0.10120229362024415,
+          "r2": -0.0847243070602417
+        }
+      ],
+      "lr": [
+        0.001
+      ]
+    },
+    "best_val_loss": 0.46198950211207074,
+    "training_time": 58.11367583274841,
+    "epochs_trained": 1
+  },
+  "test_metrics": {
+    "mse": 0.7397131323814392,
+    "rmse": 0.8600657721252714,
+    "ci": 0.6308362521848674,
+    "rm2": 0.0,
+    "pearson": 0.26250987759968974,
+    "spearman": 0.2602579853066123,
+    "r2": -0.0006964206695556641
+  },
+  "model_params": 93185
+}

@@ -57,8 +57,12 @@ BOND_FEATURES = {
     "stereo": ["STEREONONE", "STEREOZ", "STEREOE", "other"],
 }
 
-# Amino acid vocabulary for protein sequences
+# Amino acid vocabulary for protein sequences.
+# Index 0 is reserved for padding so that no real residue (e.g. alanine) is
+# treated as padding by nn.Embedding(padding_idx=0) or the attention masks.
+PAD_TOKEN = "<pad>"
 AMINO_ACIDS = [
+    PAD_TOKEN,
     "A", "C", "D", "E", "F", "G", "H", "I", "K", "L",
     "M", "N", "P", "Q", "R", "S", "T", "V", "W", "Y",
     "X",  # Unknown
@@ -292,7 +296,7 @@ def sequence_to_indices(sequence: str, max_length: Optional[int] = None) -> np.n
     """
     indices = []
     for aa in sequence.upper():
-        if aa in AA_TO_IDX:
+        if aa in AA_TO_IDX and aa != PAD_TOKEN:
             indices.append(AA_TO_IDX[aa])
         else:
             indices.append(AA_TO_IDX["X"])  # Unknown
@@ -310,7 +314,7 @@ def sequence_to_indices(sequence: str, max_length: Optional[int] = None) -> np.n
 
 
 def get_sequence_vocab_size() -> int:
-    """Get vocabulary size for amino acids."""
+    """Get vocabulary size for amino acids (including the padding token)."""
     return len(AMINO_ACIDS)
 
 
@@ -320,6 +324,7 @@ def get_sequence_vocab_size() -> int:
 
 # SMILES character vocabulary
 SMILES_CHARS = [
+    PAD_TOKEN,  # index 0 = padding
     "#", "%", "(", ")", "+", "-", ".", "/", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
     "=", "@", "A", "B", "C", "F", "G", "H", "I", "K", "L", "M", "N", "O", "P", "R", "S",
     "T", "V", "W", "Y", "Z", "[", "\\", "]", "a", "b", "c", "e", "g", "i", "l", "n", "o",
@@ -358,7 +363,7 @@ def smiles_to_indices(smiles: str, max_length: int = 100) -> np.ndarray:
 
 
 def get_smiles_vocab_size() -> int:
-    """Get vocabulary size for SMILES characters."""
+    """Get vocabulary size for SMILES characters (including the padding token)."""
     return len(SMILES_CHARS)
 
 

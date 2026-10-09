@@ -182,13 +182,15 @@ class Trainer:
         # Handle different model types
         if "drug_x" in batch:
             # Graph-based model
-            predictions, _ = self.model(
+            model_output = self.model(
                 drug_x=batch["drug_x"].to(self.device),
                 drug_edge_index=batch["drug_edge_index"].to(self.device),
                 drug_batch=batch["drug_batch"].to(self.device),
                 protein_seq=batch["protein_seq"].to(self.device),
-                drug_edge_attr=batch.get("drug_edge_attr"),
+                drug_edge_attr=batch["drug_edge_attr"].to(self.device)
+                if "drug_edge_attr" in batch else None,
             )
+            predictions = model_output[0] if isinstance(model_output, tuple) else model_output
         else:
             # Sequence-based model (DeepDTA)
             predictions = self.model(
@@ -364,7 +366,8 @@ def evaluate_model(
     data_loader: DataLoader,
     device: torch.device,
     task: str = "regression",
-) -> Dict:
+    return_predictions: bool = False,
+):
     """
     Evaluate a model on a dataset.
 
@@ -373,9 +376,10 @@ def evaluate_model(
         data_loader: DataLoader for evaluation data
         device: Device to use
         task: "regression" or "classification"
+        return_predictions: Also return (y_true, y_pred) arrays
 
     Returns:
-        Dictionary of metrics
+        Dictionary of metrics, or (metrics, y_true, y_pred) if return_predictions
     """
     model.eval()
     all_predictions = []
@@ -384,12 +388,13 @@ def evaluate_model(
     for batch in data_loader:
         # Forward pass
         if "drug_x" in batch:
-            predictions, _ = model(
+            model_output = model(
                 drug_x=batch["drug_x"].to(device),
                 drug_edge_index=batch["drug_edge_index"].to(device),
                 drug_batch=batch["drug_batch"].to(device),
                 protein_seq=batch["protein_seq"].to(device),
             )
+            predictions = model_output[0] if isinstance(model_output, tuple) else model_output
         else:
             predictions = model(
                 drug_seq=batch["drug_seq"].to(device),
@@ -406,9 +411,13 @@ def evaluate_model(
     all_targets = np.array(all_targets)
 
     if task == "regression":
-        return compute_regression_metrics(all_targets, all_predictions)
+        metrics = compute_regression_metrics(all_targets, all_predictions)
     else:
-        return compute_classification_metrics(all_targets, all_predictions)
+        metrics = compute_classification_metrics(all_targets, all_predictions)
+
+    if return_predictions:
+        return metrics, all_targets, all_predictions
+    return metrics
 
 
 if __name__ == "__main__":

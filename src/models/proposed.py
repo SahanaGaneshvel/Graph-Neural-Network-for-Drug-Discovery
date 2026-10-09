@@ -45,9 +45,10 @@ class DTIModel(nn.Module):
         gnn_layers: int = 3,
         # Protein encoder config
         protein_encoder_type: Literal["cnn", "esm"] = "cnn",
-        protein_vocab_size: int = 21,
+        protein_vocab_size: int = 22,
         protein_hidden_dim: int = 128,
         protein_output_dim: int = 128,
+        protein_num_filters: int = 64,  # per kernel size
         esm_dim: int = 1280,  # ESM-2 650M
         # Fusion config
         fusion_type: Literal["cross_attention", "concat"] = "cross_attention",
@@ -78,7 +79,7 @@ class DTIModel(nn.Module):
             self.protein_encoder = ProteinCNNEncoderWithResidues(
                 vocab_size=protein_vocab_size,
                 embed_dim=protein_hidden_dim,
-                num_filters=protein_hidden_dim,
+                num_filters=protein_num_filters,
                 output_dim=protein_output_dim,
                 dropout=dropout,
             )
@@ -151,11 +152,13 @@ class DTIModel(nn.Module):
             drug_x, drug_edge_index, drug_batch, drug_edge_attr
         )
 
-        # Encode protein
+        # Encode protein (each distinct sequence in the batch once)
+        protein_index = None
         if self.protein_encoder_type == "cnn":
-            protein_pooled, protein_residues, protein_mask = self.protein_encoder(
-                protein_seq, return_residues=True
+            protein_pooled, protein_residues, protein_mask, protein_index = (
+                self.protein_encoder.encode_unique(protein_seq)
             )
+            protein_pooled = protein_pooled[protein_index]
         else:  # esm
             if protein_esm_emb is None:
                 raise ValueError("ESM embeddings required for ESM protein encoder")
@@ -173,6 +176,7 @@ class DTIModel(nn.Module):
                 protein_mask=protein_mask,
                 drug_graph_emb=drug_graph_emb,
                 return_attention=return_attention,
+                protein_index=protein_index,
             )
         else:  # concat
             fused = self.fusion(drug_graph_emb, protein_pooled)
@@ -196,9 +200,10 @@ class DTIModelConfig:
         gnn_type: str = "GIN",
         gnn_layers: int = 3,
         protein_encoder_type: str = "cnn",
-        protein_vocab_size: int = 21,
+        protein_vocab_size: int = 22,
         protein_hidden_dim: int = 128,
         protein_output_dim: int = 128,
+        protein_num_filters: int = 64,
         esm_dim: int = 1280,
         fusion_type: str = "cross_attention",
         fusion_hidden_dim: int = 128,
@@ -216,6 +221,7 @@ class DTIModelConfig:
         self.protein_vocab_size = protein_vocab_size
         self.protein_hidden_dim = protein_hidden_dim
         self.protein_output_dim = protein_output_dim
+        self.protein_num_filters = protein_num_filters
         self.esm_dim = esm_dim
         self.fusion_type = fusion_type
         self.fusion_hidden_dim = fusion_hidden_dim

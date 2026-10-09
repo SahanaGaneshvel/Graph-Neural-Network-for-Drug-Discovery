@@ -68,14 +68,20 @@ def extract_attention_weights(
 
 def get_atom_attention_scores(
     attention_weights: np.ndarray,
-    aggregation: str = "mean",
+    aggregation: str = "max",
 ) -> np.ndarray:
     """
     Aggregate attention weights to get per-atom importance scores.
 
+    Each atom's attention row is a softmax over residues and sums to 1, so the
+    "mean"/"sum" aggregations give every atom the same score. "max" (how sharply
+    an atom focuses on some residue) is the informative default; for a ranking
+    of atoms by influence on the prediction prefer gradient saliency
+    (src.inference.AffinityPredictor reports it as atom_importance).
+
     Args:
         attention_weights: (heads, atoms, residues)
-        aggregation: "mean", "max", or "sum"
+        aggregation: "max", "mean", or "sum"
 
     Returns:
         Per-atom scores (atoms,)

@@ -1,0 +1,14 @@
+\begin{table}[t]
+\centering
+\caption{Ablations on Davis (warm split). Mean $\pm$ std over $n$ seeds.}
+\label{tab:ablation}
+\small
+\begin{tabular}{lcccc}
+\toprule
+Variant & $n$ & MSE $\downarrow$ & CI $\uparrow$ & $r_m^2$ $\uparrow$ \\
+\midrule
+Full model (GIN + CNN + cross-attention) & 1 & \textbf{0.498} & \textbf{0.792} & \textbf{0.348} \\
+GraphDTA-GIN (no residue-level fusion) & 1 & 0.581 & 0.743 & 0.222 \\
+\bottomrule
+\end{tabular}
+\end{table}

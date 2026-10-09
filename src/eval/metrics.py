@@ -46,58 +46,53 @@ def spearman_correlation(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     return float(rho) if not np.isnan(rho) else 0.0
 
 
-def concordance_index(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+def concordance_index(y_true: np.ndarray, y_pred: np.ndarray, chunk_size: int = 2048) -> float:
     """
     Concordance Index (CI) - measures ranking accuracy.
 
-    CI = (# concordant pairs) / (# comparable pairs)
+    CI = (# concordant pairs + 0.5 * # pairs tied in prediction) / (# comparable pairs)
 
-    A pair (i, j) is concordant if y_true[i] > y_true[j] implies y_pred[i] > y_pred[j]
-    A pair is comparable if y_true[i] != y_true[j]
+    A pair (i, j) is comparable if y_true[i] != y_true[j]. It is concordant
+    if the prediction orders the pair the same way as the ground truth.
+    Pairs tied in prediction count as half-concordant. This matches the
+    `get_cindex` implementation used by DeepDTA / GraphDTA.
 
     CI = 0.5 is random, CI = 1.0 is perfect ranking.
 
-    Reference: Harrell et al., "Evaluating the yield of medical tests"
+    Reference: Gonen & Heller, "Concordance probability and discriminatory
+    power in proportional hazards regression", Biometrika 2005.
 
-    Note: This is an O(n^2) implementation. For large datasets, consider
-    using a more efficient algorithm or sampling.
+    Vectorised over row blocks: O(n^2) comparisons but in NumPy, with
+    O(chunk_size * n) memory.
     """
-    y_true = np.asarray(y_true).flatten()
-    y_pred = np.asarray(y_pred).flatten()
+    y_true = np.asarray(y_true, dtype=np.float64).flatten()
+    y_pred = np.asarray(y_pred, dtype=np.float64).flatten()
 
     n = len(y_true)
     if n < 2:
         return 0.5
 
+    # Sort by y_true so every comparable pair (i < j) has y_true[i] <= y_true[j]
+    order = np.argsort(y_true, kind="mergesort")
+    t = y_true[order]
+    p = y_pred[order]
+
     concordant = 0.0
-    discordant = 0.0
-    tied_pred = 0.0
+    comparable = 0.0
+    for start in range(0, n, chunk_size):
+        stop = min(start + chunk_size, n)
+        t_i = t[start:stop, None]
+        p_i = p[start:stop, None]
+        # Only count each unordered pair once: j > i
+        upper = np.arange(start, stop)[:, None] < np.arange(n)[None, :]
+        valid = upper & (t_i < t[None, :])
+        dp = p[None, :] - p_i
+        comparable += valid.sum()
+        concordant += (valid & (dp > 0)).sum() + 0.5 * (valid & (dp == 0)).sum()
 
-    for i in range(n):
-        for j in range(i + 1, n):
-            if y_true[i] == y_true[j]:
-                continue  # Not comparable
-
-            if y_true[i] > y_true[j]:
-                if y_pred[i] > y_pred[j]:
-                    concordant += 1
-                elif y_pred[i] < y_pred[j]:
-                    discordant += 1
-                else:
-                    tied_pred += 0.5
-            else:  # y_true[i] < y_true[j]
-                if y_pred[i] < y_pred[j]:
-                    concordant += 1
-                elif y_pred[i] > y_pred[j]:
-                    discordant += 1
-                else:
-                    tied_pred += 0.5
-
-    total = concordant + discordant + tied_pred
-    if total == 0:
+    if comparable == 0:
         return 0.5
-
-    return float(concordant + tied_pred * 0.5) / total
+    return float(concordant / comparable)
 
 
 def r_squared(y_true: np.ndarray, y_pred: np.ndarray) -> float:
@@ -118,53 +113,41 @@ def rm2(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     """
     r_m^2 metric (Roy et al.)
 
-    This metric penalizes predictions that deviate from the identity line
-    (y_pred = y_true), even if they have high correlation.
+        r_m^2 = r^2 * (1 - sqrt(|r^2 - r0^2|))
 
-    r_m^2 = r^2 * (1 - sqrt(r^2 - r0^2))
+    where
+        r^2  = squared Pearson correlation between observed and predicted
+        r0^2 = coefficient of determination of the regression of observed
+               on predicted values forced through the origin (y = k * y_hat,
+               k = sum(y * y_hat) / sum(y_hat^2))
 
-    where r^2 is R-squared and r0^2 is R-squared when forced through origin.
+    It penalises predictions that correlate well but sit off the identity
+    line. A model with r_m^2 > 0.5 is considered acceptable.
 
-    Reference: Roy et al., "Some case studies on application of rm2 metrics
-               for judging quality of quantitative structure-activity relationship
-               predictions"
-
-    A model with r_m^2 > 0.5 is considered acceptable.
+    Reference: Roy et al., "Some case studies on application of r_m^2 metrics
+    for judging quality of quantitative structure-activity relationship
+    predictions", Combinatorial Chemistry & High Throughput Screening, 2013.
+    (DeepDTA's public code squares r^2 and r0^2 again inside the root; we
+    follow the paper definition.)
     """
-    y_true = np.asarray(y_true).flatten()
-    y_pred = np.asarray(y_pred).flatten()
+    y_true = np.asarray(y_true, dtype=np.float64).flatten()
+    y_pred = np.asarray(y_pred, dtype=np.float64).flatten()
 
-    # Standard R^2
-    r2 = r_squared(y_true, y_pred)
-
-    if r2 <= 0:
+    if len(y_true) < 2 or np.std(y_true) == 0 or np.std(y_pred) == 0:
         return 0.0
 
-    # R^2 when line is forced through origin
-    # For y = k*x, k = sum(xy) / sum(x^2)
-    # Then r0^2 = 1 - sum((y - k*x)^2) / sum((y - mean(y))^2)
+    r = np.corrcoef(y_true, y_pred)[0, 1]
+    r2 = r ** 2
 
-    # First, we compute r0^2 by fitting y_pred = k * y_true (no intercept)
-    k = np.sum(y_true * y_pred) / (np.sum(y_true ** 2) + 1e-10)
-    y_pred_origin = k * y_true
-
-    ss_res_origin = np.sum((y_pred - y_pred_origin) ** 2)
-    ss_tot = np.sum((y_pred - np.mean(y_pred)) ** 2)
-
-    if ss_tot == 0:
+    denom = np.sum(y_pred ** 2)
+    if denom == 0:
         return 0.0
-
+    k = np.sum(y_true * y_pred) / denom
+    ss_res_origin = np.sum((y_true - k * y_pred) ** 2)
+    ss_tot = np.sum((y_true - np.mean(y_true)) ** 2)
     r02 = 1 - ss_res_origin / ss_tot
-    r02 = max(0, r02)
 
-    # Calculate r_m^2
-    diff = r2 - r02
-    if diff < 0:
-        diff = 0
-
-    rm2_value = r2 * (1 - np.sqrt(diff))
-
-    return float(max(0, rm2_value))
+    return float(r2 * (1 - np.sqrt(np.abs(r2 - r02))))
 
 
 def auroc(y_true: np.ndarray, y_score: np.ndarray) -> float:

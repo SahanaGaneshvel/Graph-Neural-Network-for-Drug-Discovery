@@ -32,7 +32,7 @@ class DeepDTA(nn.Module):
     def __init__(
         self,
         smiles_vocab_size: int = 65,
-        protein_vocab_size: int = 21,
+        protein_vocab_size: int = 22,
         embed_dim: int = 128,
         num_filters: int = 32,
         drug_kernel_sizes: tuple = (4, 6, 8),
@@ -111,7 +111,7 @@ class GraphDTA(nn.Module):
     def __init__(
         self,
         atom_feature_dim: int = 38,
-        protein_vocab_size: int = 21,
+        protein_vocab_size: int = 22,
         hidden_dim: int = 128,
         gnn_type: Literal["GCN", "GAT", "GIN"] = "GIN",
         gnn_layers: int = 3,

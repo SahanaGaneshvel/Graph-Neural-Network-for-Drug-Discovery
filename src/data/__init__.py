@@ -30,6 +30,8 @@ from .splits import (
 
 from .dataset import (
     DTIDataset,
+    LengthBucketBatchSampler,
+    ProteinGroupedBatchSampler,
     collate_dti_batch,
 )
 
@@ -65,5 +67,7 @@ __all__ = [
     # Dataset
     "DTIDataset",
     "DTIGraphDataset",
+    "LengthBucketBatchSampler",
+    "ProteinGroupedBatchSampler",
     "collate_dti_batch",
 ]

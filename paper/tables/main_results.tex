@@ -1,0 +1,19 @@
+\begin{table}[t]
+\centering
+\caption{Binding-affinity prediction. Values are mean $\pm$ std over $n$ seeds (no $\pm$ when $n=1$). Best per column in bold. Each number states its split.}
+\label{tab:main_results}
+\small
+\begin{tabular}{llccc}
+\toprule
+\multicolumn{5}{c}{\textbf{DAVIS}} \\
+\midrule
+Model & $n$ & \multicolumn{3}{c}{warm} \\
+ & & MSE & CI & $r_m^2$ \\
+\midrule
+DeepDTA & 1 & 0.516 & 0.792 & 0.307 \\
+GraphDTA (GIN) & 1 & 0.581 & 0.743 & 0.222 \\
+Proposed (GIN + cross-attn) & 1 & \textbf{0.498} & \textbf{0.792} & \textbf{0.348} \\
+\bottomrule
+\end{tabular}
+
+\end{table}

@@ -70,7 +70,10 @@ venv.bak/
 .ipynb_checkpoints
 
 # Data files (large, should not be in git)
-data/raw/
+data/raw/*
+# Davis and KIBA (DeepDTA release, ~6 MB) are versioned: the deployed API needs them
+!data/raw/davis/
+!data/raw/kiba/
 data/processed/
 data/embeddings/
 *.csv
@@ -105,3 +108,9 @@ Thumbs.db
 *.secret
 *.key
 wandb/
+
+# Trained models served by the web app are small (~2 MB each) and versioned
+!models/serving/*.pt
+
+# Training logs
+experiments/**/*.log

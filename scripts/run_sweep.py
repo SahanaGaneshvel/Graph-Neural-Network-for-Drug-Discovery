@@ -200,7 +200,8 @@ def main():
     parser = argparse.ArgumentParser(description="Run experiment sweep")
     parser.add_argument("--models", nargs="+",
                         default=["deepdta", "graphdta_gin", "proposed"],
-                        help="Models to evaluate")
+                        help="Models to evaluate: deepdta, graphdta_gcn, graphdta_gat, "
+                             "graphdta_gin, proposed, proposed_concat")
     parser.add_argument("--datasets", nargs="+",
                         default=["davis"],
                         help="Datasets to use")
@@ -217,6 +218,13 @@ def main():
                         help="Max epochs per run")
     parser.add_argument("--batch_size", type=int, default=128)
     parser.add_argument("--lr", type=float, default=1e-3)
+    parser.add_argument("--hidden_dim", type=int, default=128)
+    parser.add_argument("--patience", type=int, default=50,
+                        help="Early-stopping patience (epochs without val improvement)")
+    parser.add_argument("--dropout", type=float, default=0.1)
+    parser.add_argument("--scheduler_patience", type=int, default=10)
+    parser.add_argument("--protein_group_size", type=int, default=8)
+    parser.add_argument("--max_protein_length", type=int, default=1000)
 
     args = parser.parse_args()
 
@@ -230,6 +238,12 @@ def main():
         max_epochs=args.epochs,
         batch_size=args.batch_size,
         learning_rate=args.lr,
+        hidden_dim=args.hidden_dim,
+        patience=args.patience,
+        dropout=args.dropout,
+        scheduler_patience=args.scheduler_patience,
+        protein_group_size=args.protein_group_size,
+        max_protein_length=args.max_protein_length,
     )
 
     return df

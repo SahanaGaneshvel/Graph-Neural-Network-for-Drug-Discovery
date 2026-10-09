@@ -1,0 +1,62 @@
+{
+  "config": {
+    "experiment_name": "dti_experiment",
+    "seed": 42,
+    "dataset": "davis",
+    "split_type": "warm",
+    "test_ratio": 0.2,
+    "val_ratio": 0.1,
+    "model_type": "graphdta_gin",
+    "hidden_dim": 32,
+    "gnn_layers": 3,
+    "dropout": 0.1,
+    "fusion_type": "cross_attention",
+    "learning_rate": 0.001,
+    "weight_decay": 1e-05,
+    "batch_size": 512,
+    "max_epochs": 1,
+    "patience": 50,
+    "grad_clip_norm": 5.0,
+    "output_dir": "experiments/real_validation",
+    "data_dir": "data/raw"
+  },
+  "git_commit": "98dab72",
+  "timestamp": "20260819_095035",
+  "training": {
+    "history": {
+      "train_loss": [
+        5.289690636453175
+      ],
+      "val_loss": [
+        0.7613292336463928
+      ],
+      "val_metrics": [
+        {
+          "mse": 0.7624231576919556,
+          "rmse": 0.873168458942463,
+          "ci": 0.6940304864726953,
+          "rm2": 0.06170586861122185,
+          "pearson": 0.4000068292722607,
+          "spearman": 0.3679503658013639,
+          "r2": 0.08765953779220581
+        }
+      ],
+      "lr": [
+        0.001
+      ]
+    },
+    "best_val_loss": 0.7613292336463928,
+    "training_time": 57.509557485580444,
+    "epochs_trained": 1
+  },
+  "test_metrics": {
+    "mse": 0.6822873950004578,
+    "rmse": 0.8260068976712348,
+    "ci": 0.6951131184753682,
+    "rm2": 0.06587268161168404,
+    "pearson": 0.3984605889416179,
+    "spearman": 0.36556583363738954,
+    "r2": 0.09528595209121704
+  },
+  "model_params": 93185
+}

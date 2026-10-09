@@ -1,0 +1,144 @@
+{
+  "generated_at": "2026-10-08T15:21:43",
+  "datasets": {
+    "davis": {
+      "name": "Davis",
+      "description": "Kd of 68 kinase inhibitors measured against 442 kinases (Davis et al., 2011). Affinity as pKd = 9 - log10(Kd[nM]).",
+      "pairs": 30056,
+      "drugs": 68,
+      "targets": 442,
+      "status": "available"
+    },
+    "kiba": {
+      "name": "KIBA",
+      "description": "KIBA scores that integrate Ki, Kd and IC50 into one bioactivity value (Tang et al., 2014). Filtered version from DeepDTA.",
+      "pairs": 118253,
+      "drugs": 2111,
+      "targets": 229,
+      "status": "available"
+    }
+  },
+  "total_runs": 3,
+  "headline": {
+    "model": "proposed",
+    "dataset": "davis",
+    "split": "warm",
+    "n_seeds": 1,
+    "seeds": [
+      42
+    ],
+    "params": 568513,
+    "mean_epochs": 15.0,
+    "mean_train_time_s": 804.0201654434204,
+    "metrics": {
+      "ci": 0.7924513060563622,
+      "mse": 0.49808165431022644,
+      "rmse": 0.7057490023444783,
+      "rm2": 0.3478008744969846,
+      "pearson": 0.5903813715513984,
+      "spearman": 0.5387083607971328,
+      "r2": 0.33954310417175293
+    },
+    "metrics_std": {
+      "ci": 0.0,
+      "mse": 0.0,
+      "rmse": 0.0,
+      "rm2": 0.0,
+      "pearson": 0.0,
+      "spearman": 0.0,
+      "r2": 0.0
+    }
+  },
+  "results": [
+    {
+      "model": "deepdta",
+      "dataset": "davis",
+      "split": "warm",
+      "n_seeds": 1,
+      "seeds": [
+        42
+      ],
+      "params": 307009,
+      "mean_epochs": 12.0,
+      "mean_train_time_s": 395.55086398124695,
+      "metrics": {
+        "ci": 0.7917650875363949,
+        "mse": 0.5158500075340271,
+        "rmse": 0.7182269888649598,
+        "rm2": 0.3070512576430282,
+        "pearson": 0.5642092967669008,
+        "spearman": 0.5381585101167377,
+        "r2": 0.31598222255706787
+      },
+      "metrics_std": {
+        "ci": 0.0,
+        "mse": 0.0,
+        "rmse": 0.0,
+        "rm2": 0.0,
+        "pearson": 0.0,
+        "spearman": 0.0,
+        "r2": 0.0
+      }
+    },
+    {
+      "model": "graphdta_gin",
+      "dataset": "davis",
+      "split": "warm",
+      "n_seeds": 1,
+      "seeds": [
+        42
+      ],
+      "params": 432481,
+      "mean_epochs": 8.0,
+      "mean_train_time_s": 242.36191082000732,
+      "metrics": {
+        "ci": 0.7427491027510118,
+        "mse": 0.5809995532035828,
+        "rmse": 0.7622332669226546,
+        "rm2": 0.22160873568549555,
+        "pearson": 0.4819095600090255,
+        "spearman": 0.45260794222288386,
+        "r2": 0.22959387302398682
+      },
+      "metrics_std": {
+        "ci": 0.0,
+        "mse": 0.0,
+        "rmse": 0.0,
+        "rm2": 0.0,
+        "pearson": 0.0,
+        "spearman": 0.0,
+        "r2": 0.0
+      }
+    },
+    {
+      "model": "proposed",
+      "dataset": "davis",
+      "split": "warm",
+      "n_seeds": 1,
+      "seeds": [
+        42
+      ],
+      "params": 568513,
+      "mean_epochs": 15.0,
+      "mean_train_time_s": 804.0201654434204,
+      "metrics": {
+        "ci": 0.7924513060563622,
+        "mse": 0.49808165431022644,
+        "rmse": 0.7057490023444783,
+        "rm2": 0.3478008744969846,
+        "pearson": 0.5903813715513984,
+        "spearman": 0.5387083607971328,
+        "r2": 0.33954310417175293
+      },
+      "metrics_std": {
+        "ci": 0.0,
+        "mse": 0.0,
+        "rmse": 0.0,
+        "rm2": 0.0,
+        "pearson": 0.0,
+        "spearman": 0.0,
+        "r2": 0.0
+      }
+    }
+  ]
+}

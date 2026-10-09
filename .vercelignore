@@ -1,0 +1,10 @@
+.venv
+data
+experiments
+models
+paper
+src
+tests
+scripts
+configs
+*.md

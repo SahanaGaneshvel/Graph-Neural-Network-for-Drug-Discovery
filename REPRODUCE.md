@@ -1,265 +1,121 @@
 # Reproducibility Guide
 
-This document provides exact commands to reproduce all results and figures from the paper.
+Exact commands to regenerate every number, table and figure in this repository from scratch.
+All commands run from the repository root.
 
-## Prerequisites
+## 1. Environment
 
-### Environment Setup
+Tested with Python 3.12.9, Windows 11, CPU only.
 
-1. Create a conda environment (recommended):
 ```bash
-conda create -n dti-gnn python=3.10
-conda activate dti-gnn
+python -m venv .venv
+.venv\Scripts\activate                     # Linux/macOS: source .venv/bin/activate
+pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu
+#   CUDA 12.1 instead: --index-url https://download.pytorch.org/whl/cu121
+pip install -r requirements.txt
+python scripts/verify_env.py               # must print "Core requirements satisfied"
 ```
 
-2. Install PyTorch (adjust for your CUDA version):
-```bash
-# CPU only
-pip install torch torchvision
+Pinned versions: torch 2.5.1, torch-geometric 2.6.1, rdkit 2024.3.6, numpy 2.0.2, pandas 2.2.3,
+scipy 1.14.1, scikit-learn 1.5.2. `torch-scatter`/`torch-sparse` are not required.
 
-# CUDA 11.8
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+> Use a dedicated virtual environment. A global install that mixes NumPy 2.x with older
+> pandas/SciPy wheels fails on import with "numpy.dtype size changed".
 
-# CUDA 12.1
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
-```
+## 2. Data
 
-3. Install PyTorch Geometric:
-```bash
-# Find your torch version
-python -c "import torch; print(torch.__version__)"
-
-# Install matching PyG (example for torch 2.2.0 + CUDA 11.8)
-pip install torch-geometric
-pip install pyg_lib torch-scatter torch-sparse -f https://data.pyg.org/whl/torch-2.2.0+cu118.html
-```
-
-4. Install remaining dependencies:
-```bash
-pip install rdkit fair-esm hydra-core omegaconf wandb pytest
-pip install numpy pandas scipy scikit-learn tqdm matplotlib seaborn
-```
-
-5. Verify installation:
-```bash
-python scripts/verify_env.py
-```
-
-All checks should pass before proceeding.
-
-## Data Preparation
-
-### Download Datasets
+The DeepDTA releases of Davis and KIBA are included in `data/raw/`. To re-download:
 
 ```bash
-# Download Davis and KIBA datasets
 python -c "from src.data import download_dataset; download_dataset('davis'); download_dataset('kiba')"
 ```
 
-The data will be saved to `data/raw/davis/` and `data/raw/kiba/`.
-
-### Verify Data
+Check the statistics (Davis: 30,056 pairs, 68 drugs, 442 targets; KIBA: 118,253 pairs,
+2,111 drugs, 229 targets):
 
 ```bash
-# Check dataset statistics
-python -c "
-from src.data import load_davis, load_kiba, create_interaction_df, get_dataset_stats
-for name, loader in [('davis', load_davis), ('kiba', load_kiba)]:
-    data = loader()
-    df = create_interaction_df(data)
-    get_dataset_stats(df, name)
-"
+python -c "from src.data import *; [get_dataset_stats(create_interaction_df(l()), n) for n, l in [('davis', load_davis), ('kiba', load_kiba)]]"
 ```
 
-Expected output:
-- Davis: ~30,056 interactions, 68 drugs, 442 proteins
-- KIBA: ~118,254 interactions, 2,111 drugs, 229 proteins
+Davis labels are transformed to pKd = 9 − log10(Kd[nM]); KIBA scores are used as given.
 
-## Running Experiments
-
-### Single Experiment
-
-Run a single experiment with specific settings:
+## 3. Train everything reported in the README
 
 ```bash
-# Proposed model on Davis, warm split
-python scripts/run_experiment.py \
-    --model proposed \
-    --dataset davis \
-    --split warm \
-    --seed 42 \
-    --epochs 1000 \
-    --output_dir experiments
-
-# GraphDTA (GIN) on Davis, cold-target split
-python scripts/run_experiment.py \
-    --model graphdta_gin \
-    --dataset davis \
-    --split cold_target \
-    --seed 42
+python scripts/train_all.py            # 'cpu' plan (≈ 1 h on a 4-core CPU)
 ```
 
-Results are saved to `experiments/<run_name>/`:
-- `results.json`: All metrics and configuration
-- `model.pt`: Trained model weights
-- `config.yaml`: Experiment configuration
+The plan (in `scripts/train_all.py`) is, in order:
 
-### Full Experiment Sweep
+| Plan | Models | Dataset | Split | Seeds |
+|---|---|---|---|---|
+| `cpu` (reported) | proposed, graphdta_gin, deepdta | Davis | warm | 42 |
+| `cpu_extended` adds | proposed, graphdta_gin, deepdta | Davis | warm | 43, 44 |
+| | proposed, graphdta_gin | Davis | cold_target, cold_drug, cold_both | 42 |
+| | proposed_concat, graphdta_gcn, graphdta_gat | Davis | warm | 42 |
 
-Run the complete experiment grid (all models × datasets × splits × seeds):
+Settings: ≤ 15 epochs, early-stopping patience 5, LR-plateau patience 3, batch 128,
+lr 1e-3, weight decay 1e-5, dropout 0.1, hidden 128, protein length ≤ 1,000.
+
+The script is **resumable** (finished runs are skipped) and afterwards:
+
+1. copies the proposed/Davis/warm checkpoints to `models/serving/` (used by the web app),
+2. rebuilds `frontend/data/dashboard.json`,
+3. writes `paper/tables/*.tex` and `paper/tables/results_summary.md`,
+4. writes `paper/figures/*.png`.
+
+The full paper protocol (Davis + KIBA × 4 splits × 6 models × 5 seeds, 200 epochs) is
+`python scripts/train_all.py --plan full` and needs a GPU.
+
+## 4. Individual runs and sweeps
 
 ```bash
-# Main results (Davis, 5 seeds)
-python scripts/run_sweep.py \
-    --models deepdta graphdta_gcn graphdta_gat graphdta_gin proposed \
-    --datasets davis \
-    --splits warm cold_drug cold_target cold_both \
-    --seeds 5 \
-    --output_dir experiments/sweeps
+# One run -> experiments/<run>/{results.json, model.pt, predictions.npz, config.yaml}
+python scripts/run_experiment.py --model proposed --dataset davis --split warm --seed 42 --epochs 15
 
-# KIBA experiments (optional, takes longer)
-python scripts/run_sweep.py \
-    --models deepdta graphdta_gin proposed \
-    --datasets kiba \
-    --splits warm cold_target \
-    --seeds 5 \
-    --output_dir experiments/sweeps
+# Same run from a config file (nested configs/default.yaml or a run's flat config.yaml);
+# explicit flags override the file
+python scripts/run_experiment.py --config configs/default.yaml --epochs 15
+
+# Grid with mean ± std over seeds -> experiments/sweeps/sweep_<time>/sweep_results.csv
+python scripts/run_sweep.py --models deepdta graphdta_gin proposed \
+    --datasets davis --splits warm cold_drug cold_target cold_both --seeds 5 --epochs 200
 ```
 
-**Estimated time:** ~2-4 hours on a single GPU for Davis full sweep.
+Models: `deepdta`, `graphdta_gcn`, `graphdta_gat`, `graphdta_gin`, `proposed`, `proposed_concat`.
 
-### Ablation Experiments
+Every `results.json` records the full config, a config hash, the git commit, split sizes,
+per-epoch training history and test metrics. Cold-split runs assert zero drug/target overlap
+between train/val and test before training starts.
+
+## 5. Rebuild outputs from existing runs
 
 ```bash
-# Protein encoder ablation (CNN vs ESM-2)
-# Note: ESM-2 requires pre-computing embeddings first
-
-# Fusion type ablation (cross-attention vs concat)
-python scripts/run_sweep.py \
-    --models proposed_concat proposed_crossattn \
-    --datasets davis \
-    --splits warm \
-    --seeds 5
-
-# GNN type ablation
-python scripts/run_sweep.py \
-    --models graphdta_gcn graphdta_gat graphdta_gin \
-    --datasets davis \
-    --splits warm \
-    --seeds 5
+python scripts/train_all.py --only-artifacts   # all of the below + export app models
+python scripts/build_dashboard_data.py         # frontend/data/dashboard.json
+python scripts/generate_tables.py              # paper/tables/
+python scripts/generate_figures.py             # paper/figures/
 ```
 
-## Generating Paper Artifacts
+`experiments/archive/` holds old 1-epoch smoke tests and is ignored by all aggregations.
 
-### Generate LaTeX Tables
+## 6. Web app
 
 ```bash
-# From sweep results
-python scripts/generate_tables.py \
-    --results experiments/sweeps/sweep_*/sweep_results.csv \
-    --output_dir paper/tables \
-    --table all
+python scripts/serve_app.py                    # http://localhost:8000
+python scripts/serve_app.py --port 9000 --checkpoints "experiments/cpu/proposed_davis_warm/*/model.pt"
 ```
 
-This creates:
-- `paper/tables/main_results.tex`: Main comparison table
-- `paper/tables/ablation.tex`: Ablation study table
-- `paper/tables/split_comparison.tex`: Split comparison table
-
-### Generate Figures
+## 7. Tests
 
 ```bash
-python scripts/generate_figures.py \
-    --results experiments/sweeps/sweep_*/sweep_results.csv \
-    --output_dir paper/figures
-```
-
-This creates:
-- `paper/figures/split_comparison_ci.png`: Bar chart of CI across splits
-- `paper/figures/split_comparison_mse.png`: Bar chart of MSE across splits
-- `paper/figures/performance_heatmap.png`: Model-dataset performance heatmap
-
-### Generate Attention Visualizations
-
-```bash
-# Run a model and extract attention maps for specific drug-target pairs
-python -c "
-from src.eval.interpretability import save_interpretation_report
-# ... (see src/eval/interpretability.py for usage)
-"
-```
-
-## Unit Tests
-
-Run all tests to verify correctness:
-
-```bash
-# All tests
-pytest tests/ -v
-
-# Specific test modules
-pytest tests/test_data.py -v  # Data pipeline tests
-pytest tests/test_metrics.py -v  # Metric tests (if exists)
-
-# Run metric self-tests
+python -m pytest                               # full suite
 python -c "from src.eval.metrics import run_metric_tests; run_metric_tests()"
 ```
 
-## Expected Results
+## 8. Determinism
 
-### Main Results (Davis, mean ± std over 5 seeds)
-
-| Model | Warm CI | Cold-Target CI |
-|-------|---------|----------------|
-| DeepDTA | ~0.88 | ~0.75 |
-| GraphDTA-GIN | ~0.89 | ~0.78 |
-| Proposed | ~0.90 | ~0.80 |
-
-Note: Exact values may vary slightly due to random initialization.
-
-### Reproducing Published Numbers
-
-If results differ significantly from published:
-1. Check torch/PyG version compatibility
-2. Verify random seeds are set correctly
-3. Check data preprocessing (affinity transform)
-4. Compare hyperparameters with `configs/default.yaml`
-
-## Troubleshooting
-
-### CUDA Out of Memory
-
-Reduce batch size:
-```bash
-python scripts/run_experiment.py --batch_size 64
-```
-
-### PyG Installation Issues
-
-Install from wheels matching your torch version:
-```bash
-pip install torch-scatter torch-sparse -f https://data.pyg.org/whl/torch-{TORCH_VERSION}+{CUDA}.html
-```
-
-### RDKit Import Errors
-
-Install via conda:
-```bash
-conda install -c conda-forge rdkit
-```
-
-## Citation
-
-If you use this code, please cite:
-```bibtex
-@inproceedings{author2024dtignn,
-  title={Graph Neural Networks with Cross-Attention for Drug-Target Interaction Prediction},
-  author={Author, A.},
-  booktitle={Conference},
-  year={2024}
-}
-```
-
-## Contact
-
-For questions about reproducing results, please open an issue on GitHub.
+Python, NumPy and PyTorch are seeded and `torch.use_deterministic_algorithms(True, warn_only=True)`
+is enabled, so re-running a configuration on the same machine and library versions gives the
+same split, the same batches and (on CPU) the same metrics. Different hardware or library
+versions can change results in the last decimals.

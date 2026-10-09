@@ -102,18 +102,58 @@ class DTIDataset(Dataset):
                     smiles, self.max_smiles_length
                 )
 
-        # Precompute protein features
+        # Precompute protein features (truncated, not padded: the collate
+        # function pads each batch only to its longest sequence)
         for seq in self.unique_sequences:
-            self._protein_cache[seq] = sequence_to_indices(
-                seq, self.max_protein_length
-            )
+            self._protein_cache[seq] = sequence_to_indices(seq)[: self.max_protein_length]
+
+        # Convert cached features to tensors once, so __getitem__ is just lookups
+        self._drug_tensors = {}
+        for smiles, feat in self._drug_cache.items():
+            if feat is None:
+                continue
+            if self.drug_representation == "graph":
+                self._drug_tensors[smiles] = {
+                    "drug_x": torch.tensor(feat["x"], dtype=torch.float),
+                    "drug_edge_index": torch.tensor(feat["edge_index"], dtype=torch.long),
+                    "drug_edge_attr": torch.tensor(feat["edge_attr"], dtype=torch.float),
+                    "drug_num_atoms": feat["num_atoms"],
+                }
+            else:
+                self._drug_tensors[smiles] = {"drug_seq": torch.tensor(feat, dtype=torch.long)}
+        self._protein_tensors = {
+            seq: torch.tensor(feat, dtype=torch.long) for seq, feat in self._protein_cache.items()
+        }
+
+        # Column arrays avoid slow per-row DataFrame access
+        self._smiles_col = self.df["smiles"].to_numpy()
+        self._sequence_col = self.df["sequence"].to_numpy()
+        self._affinity_col = torch.tensor(self.df["affinity"].to_numpy(), dtype=torch.float)
+        self._drug_id_col = self.df["drug_id"].to_numpy()
+        self._protein_id_col = self.df["protein_id"].to_numpy()
 
         print("  Done.")
 
     def __len__(self) -> int:
         return len(self.df)
 
+    def protein_lengths(self) -> np.ndarray:
+        """(Truncated) protein length of every sample, for length bucketing."""
+        lengths = {s: len(f) for s, f in self._protein_cache.items()}
+        return np.array([lengths[s] for s in self.df["sequence"]])
+
     def __getitem__(self, idx: int) -> Dict:
+        if hasattr(self, "_affinity_col"):
+            smiles = self._smiles_col[idx]
+            sequence = self._sequence_col[idx]
+            if smiles in self._drug_tensors and sequence in self._protein_tensors:
+                sample = dict(self._drug_tensors[smiles])
+                sample["protein_seq"] = self._protein_tensors[sequence]
+                sample["affinity"] = self._affinity_col[idx]
+                sample["drug_id"] = self._drug_id_col[idx]
+                sample["protein_id"] = self._protein_id_col[idx]
+                return sample
+
         row = self.df.iloc[idx]
         smiles = row["smiles"]
         sequence = row["sequence"]
@@ -133,7 +173,7 @@ class DTIDataset(Dataset):
         if sequence in self._protein_cache:
             protein_feat = self._protein_cache[sequence]
         else:
-            protein_feat = sequence_to_indices(sequence, self.max_protein_length)
+            protein_feat = sequence_to_indices(sequence)[: self.max_protein_length]
             self._protein_cache[sequence] = protein_feat
 
         # Package into tensors
@@ -267,6 +307,109 @@ class DTIGraphDataset(InMemoryDataset if PYG_AVAILABLE else object):
         self.save(data_list, self.processed_paths[0])
 
 
+class LengthBucketBatchSampler:
+    """
+    Batch sampler that groups samples with similar protein length.
+
+    Indices are shuffled, cut into pools of `pool_batches` batches, sorted by
+    protein length inside each pool and split into batches; the batch order is
+    shuffled again. Batches therefore stay random but need far less padding,
+    which matters because the protein CNN dominates training cost.
+    """
+
+    def __init__(self, lengths, batch_size: int, pool_batches: int = 50, seed: int = 0):
+        self.lengths = np.asarray(lengths)
+        self.batch_size = batch_size
+        self.pool_size = batch_size * pool_batches
+        self.rng = np.random.RandomState(seed)
+
+    def __iter__(self):
+        order = self.rng.permutation(len(self.lengths))
+        batches = []
+        for start in range(0, len(order), self.pool_size):
+            pool = order[start:start + self.pool_size]
+            pool = pool[np.argsort(self.lengths[pool], kind="stable")]
+            batches.extend(
+                pool[i:i + self.batch_size].tolist()
+                for i in range(0, len(pool), self.batch_size)
+            )
+        for idx in self.rng.permutation(len(batches)):
+            yield batches[idx]
+
+    def __len__(self) -> int:
+        return (len(self.lengths) + self.batch_size - 1) // self.batch_size
+
+
+class ProteinGroupedBatchSampler:
+    """
+    Batch sampler that puts several pairs of the same protein in a batch.
+
+    Every training pair is still visited exactly once per epoch, but a batch
+    of 128 is built from 128 / group_size proteins x group_size drugs. Because
+    the protein encoders encode each distinct sequence once per batch, this
+    cuts the dominant protein-CNN cost by roughly group_size.
+
+    Steps per epoch:
+      1. for every protein, shuffle its pair indices and cut them into chunks
+         of `group_size`
+      2. shuffle the chunks, then sort chunks by protein length inside pools
+         of `pool_batches` batches (less padding)
+      3. pack chunks into batches of `batch_size` pairs and shuffle batch order
+    """
+
+    def __init__(
+        self,
+        protein_keys,
+        lengths,
+        batch_size: int,
+        group_size: int = 8,
+        pool_batches: int = 20,
+        seed: int = 0,
+    ):
+        self.protein_keys = np.asarray(protein_keys)
+        self.lengths = np.asarray(lengths)
+        self.batch_size = batch_size
+        self.group_size = max(1, min(group_size, batch_size))
+        self.pool_batches = pool_batches
+        self.rng = np.random.RandomState(seed)
+        _, self.groups = np.unique(self.protein_keys, return_inverse=True)
+
+    def _batches(self):
+        order = self.rng.permutation(len(self.protein_keys))
+        by_protein: Dict[int, List[int]] = {}
+        for idx in order:
+            by_protein.setdefault(int(self.groups[idx]), []).append(int(idx))
+
+        chunks = [
+            members[i:i + self.group_size]
+            for members in by_protein.values()
+            for i in range(0, len(members), self.group_size)
+        ]
+        chunks = [chunks[i] for i in self.rng.permutation(len(chunks))]
+
+        chunks_per_batch = max(1, self.batch_size // self.group_size)
+        pool = chunks_per_batch * self.pool_batches
+        batches = []
+        for start in range(0, len(chunks), pool):
+            block = sorted(chunks[start:start + pool], key=lambda c: self.lengths[c[0]])
+            current: List[int] = []
+            for chunk in block:
+                if current and len(current) + len(chunk) > self.batch_size:
+                    batches.append(current)
+                    current = []
+                current = current + chunk
+            if current:
+                batches.append(current)
+        return [batches[i] for i in self.rng.permutation(len(batches))]
+
+    def __iter__(self):
+        yield from self._batches()
+
+    def __len__(self) -> int:
+        # Upper bound is fine for progress reporting; exact count varies slightly
+        return (len(self.protein_keys) + self.batch_size - 1) // self.batch_size
+
+
 def collate_dti_batch(batch: List[Dict]) -> Dict:
     """
     Custom collate function for DTIDataset with graph representation.
@@ -304,7 +447,10 @@ def collate_dti_batch(batch: List[Dict]) -> Dict:
         affinity_list.append(sample["affinity"])
 
     collated = {
-        "protein_seq": torch.stack(protein_seq_list),
+        # Pad proteins to the longest sequence in this batch (index 0 = padding)
+        "protein_seq": torch.nn.utils.rnn.pad_sequence(
+            protein_seq_list, batch_first=True, padding_value=0
+        ),
         "affinity": torch.stack(affinity_list),
     }
 
