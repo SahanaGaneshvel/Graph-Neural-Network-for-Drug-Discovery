@@ -1,5 +1,5 @@
 /**
- * NeuroPharma AI - Drug Discovery Platform
+ * AffiniGraph - Drug-Target Affinity Prediction
  * Frontend Application JavaScript
  */
 
@@ -8,8 +8,8 @@
 // ============================================
 
 // Backend location. Empty = same origin (python scripts/serve_app.py serves both).
-// For a separately hosted frontend, frontend/config.js sets window.NEUROPHARMA_API_BASE.
-const API_BASE = (window.NEUROPHARMA_API_BASE || '').replace(/\/$/, '');
+// For a separately hosted frontend, frontend/config.js sets window.AFFINIGRAPH_API_BASE.
+const API_BASE = (window.AFFINIGRAPH_API_BASE || '').replace(/\/$/, '');
 
 const AppState = {
   data: {

@@ -1,4 +1,4 @@
-# NeuroPharma AI — Graph Neural Networks for Drug–Target Interaction Prediction
+# AffiniGraph — Graph Neural Networks for Drug–Target Interaction Prediction
 
 Predicting **how strongly a drug molecule binds to a protein target** from just its chemical
 structure (SMILES) and the protein's amino-acid sequence, using a **Graph Neural Network with
@@ -364,16 +364,18 @@ Datasets are already in `data/raw/`. To re-download:
 
 ### Deployment (frontend on Vercel, API on Render)
 
+**Live app:** <https://affinigraph.vercel.app>  ·  **API:** <https://affinigraph-api.onrender.com/api/health>
+
 | Part | Where | Config |
 |---|---|---|
-| Frontend (static HTML/JS/CSS) | Vercel | `vercel.json` serves `frontend/`; no build step |
+| Frontend (static HTML/JS/CSS) | Vercel project `affinigraph` | `vercel.json` serves `frontend/`; no build step (`cd frontend && vercel deploy --prod`) |
 | Prediction API (`scripts/serve_app.py`) | Render (free web service) | `render.yaml`, CPU-only `requirements-server.txt` |
-| Connection | `frontend/config.js` | points the deployed frontend at `https://neuropharma-api.onrender.com` (localhost always uses the local server); the API sends CORS headers |
+| Connection | `frontend/config.js` | points the deployed frontend at `https://affinigraph-api.onrender.com` (localhost always uses the local server); the API sends CORS headers |
 
 1. **API:** open <https://render.com/deploy?repo=https://github.com/SahanaGaneshvel/Graph-Neural-Network-for-Drug-Discovery>
    and apply the blueprint. If Render gives the service a different URL, put it in
    `frontend/config.js`.
-2. **Frontend:** `vercel deploy --prod` from the repository root.
+2. **Frontend:** `cd frontend && vercel deploy --prod`.
 
 Notes: the server uses ~390 MB RAM (fits the 512 MB free tier). Free Render services sleep
 after 15 minutes idle, so the first request after a pause takes ~1 minute; the sidebar shows

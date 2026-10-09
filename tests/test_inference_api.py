@@ -165,4 +165,4 @@ def test_api_rejects_bad_requests(server):
 
 def test_static_frontend_is_served(server):
     with urllib.request.urlopen(server + "/", timeout=10) as r:
-        assert b"NeuroPharma" in r.read()
+        assert b"AffiniGraph" in r.read()

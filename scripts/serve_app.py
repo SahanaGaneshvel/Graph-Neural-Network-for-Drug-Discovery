@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-NeuroPharma AI - application server.
+AffiniGraph - application server.
 
 Serves the frontend (frontend/) and a small JSON API backed by the trained
 cross-attention GNN.
@@ -310,7 +310,7 @@ class ThreadingServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Serve the NeuroPharma AI web app")
+    parser = argparse.ArgumentParser(description="Serve the AffiniGraph web app")
     # Hosting platforms (Render, etc.) pass the port in $PORT and need 0.0.0.0
     parser.add_argument("--host", default=os.environ.get("HOST", "127.0.0.1"))
     parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", 8000)))
@@ -319,7 +319,7 @@ def main():
     args = parser.parse_args()
     sys.stdout.reconfigure(line_buffering=True)  # show request logs immediately
 
-    print("NeuroPharma AI - loading datasets and model...")
+    print("AffiniGraph - loading datasets and model...")
     APIHandler.state = AppState(args.checkpoints)
     if APIHandler.state.predictor is not None:
         info = APIHandler.state.predictor.describe()

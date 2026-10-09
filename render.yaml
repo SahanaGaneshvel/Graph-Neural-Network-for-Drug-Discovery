@@ -2,7 +2,7 @@
 # Deploy: https://render.com/deploy?repo=https://github.com/SahanaGaneshvel/Graph-Neural-Network-for-Drug-Discovery
 services:
   - type: web
-    name: neuropharma-api
+    name: affinigraph-api
     runtime: python
     plan: free
     buildCommand: pip install -r requirements-server.txt
