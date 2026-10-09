@@ -5,6 +5,13 @@ structure (SMILES) and the protein's amino-acid sequence, using a **Graph Neural
 atom-to-residue cross-attention** — plus a web application that serves the trained model with
 interpretable outputs.
 
+| | Link |
+|---|---|
+| **Live web app** (Vercel) | <https://affinigraph.vercel.app> |
+| **Prediction API** (Render) | <https://affinigraph-api.onrender.com/api/health> |
+| **Source code** (GitHub) | <https://github.com/SahanaGaneshvel/Graph-Neural-Network-for-Drug-Discovery> |
+| **Run locally** | `python scripts/serve_app.py` → <http://localhost:8000> (see [Quick start](#13-quick-start)) |
+
 <p align="center">
   <img src="paper/figures/architecture.png" width="900" alt="Model architecture">
 </p>
@@ -25,7 +32,7 @@ interpretable outputs.
 10. [Interpretability](#10-interpretability)
 11. [The web application](#11-the-web-application)
 12. [REST API](#12-rest-api)
-13. [Quick start](#13-quick-start)
+13. [Quick start](#13-quick-start) (incl. [deployment](#deployment-frontend-on-vercel-api-on-render))
 14. [Reproducing every number](#14-reproducing-every-number)
 15. [Project structure](#15-project-structure)
 16. [Engineering notes (correctness & performance work)](#16-engineering-notes-correctness--performance-work)
@@ -366,21 +373,99 @@ Datasets are already in `data/raw/`. To re-download:
 
 **Live app:** <https://affinigraph.vercel.app>  ·  **API:** <https://affinigraph-api.onrender.com/api/health>
 
-| Part | Where | Config |
-|---|---|---|
-| Frontend (static HTML/JS/CSS) | Vercel project `affinigraph` | `vercel.json` serves `frontend/`; no build step (`cd frontend && vercel deploy --prod`) |
-| Prediction API (`scripts/serve_app.py`) | Render (free web service) | `render.yaml`, CPU-only `requirements-server.txt` |
-| Connection | `frontend/config.js` | points the deployed frontend at `https://affinigraph-api.onrender.com` (localhost always uses the local server); the API sends CORS headers |
+#### Architecture
 
-1. **API:** open <https://render.com/deploy?repo=https://github.com/SahanaGaneshvel/Graph-Neural-Network-for-Drug-Discovery>
-   and apply the blueprint. If Render gives the service a different URL, put it in
-   `frontend/config.js`.
-2. **Frontend:** `cd frontend && vercel deploy --prod`.
+```
+ Browser ──▶ https://affinigraph.vercel.app            (Vercel: static frontend/)
+    │            index.html · app.js · styles.css · config.js · data/dashboard.json
+    │
+    └── fetch /api/* ──▶ https://affinigraph-api.onrender.com   (Render: scripts/serve_app.py)
+                           trained GNN (models/serving/*.pt) + Davis/KIBA data (data/raw/)
+```
 
-Notes: the server uses ~390 MB RAM (fits the 512 MB free tier). Free Render services sleep
-after 15 minutes idle, so the first request after a pause takes ~1 minute; the sidebar shows
-"Server offline" until it wakes. Vercel cannot host the API itself: PyTorch + PyG + RDKit exceed
-its 250 MB function limit.
+| Part | Where | Config files | Status |
+|---|---|---|---|
+| Frontend (static HTML/JS/CSS) | Vercel project `affinigraph` | `vercel.json`, `frontend/` (no build step) | **Live** |
+| Prediction API | Render web service `affinigraph-api` (free plan) | `render.yaml`, `requirements-server.txt` (CPU-only PyTorch) | **Live** |
+| Connection | `frontend/config.js` | sets `window.AFFINIGRAPH_API_BASE`; the API sends CORS headers so the Vercel site may call it | **Connected** |
+| Source | GitHub `main` branch | code, trained app model, Davis/KIBA data, figures, tables | Pushed |
+
+**Why two hosts?** Vercel cannot run the Python API: PyTorch + PyTorch Geometric + RDKit exceed
+its 250 MB serverless-function limit. Render runs it as an ordinary long-lived web service.
+
+#### 1. How the API is deployed on Render
+
+To recreate the service (for example in another Render account):
+
+1. Open <https://render.com/deploy?repo=https://github.com/SahanaGaneshvel/Graph-Neural-Network-for-Drug-Discovery>
+   and sign in (GitHub login works).
+2. Render reads `render.yaml` and proposes a **free web service named `affinigraph-api`**. Click **Apply**.
+3. The build runs `pip install -r requirements-server.txt`, then starts
+   `python scripts/serve_app.py --host 0.0.0.0` (the port comes from Render's `$PORT`).
+   Health check: `/api/health`.
+4. When the service is **Live**, check <https://affinigraph-api.onrender.com/api/health>.
+   It should return `{"status": "healthy", "model_loaded": true, ...}`.
+5. Open <https://affinigraph.vercel.app>. The sidebar status changes from *Server offline*
+   to *GNN ×1 ready*, and predictions now come from the trained model.
+
+**Changing the API URL:** the frontend reads it from `frontend/config.js`. Edit it, then redeploy
+the frontend (step 2) and push:
+
+```js
+// frontend/config.js
+window.AFFINIGRAPH_API_BASE = ['localhost', '127.0.0.1'].includes(window.location.hostname)
+  ? ''
+  : 'https://<your-service>.onrender.com';
+```
+
+#### 2. Deploy / update the frontend on Vercel
+
+```bash
+npm i -g vercel        # once
+vercel login           # once
+cd frontend
+vercel deploy --prod   # project "affinigraph" -> https://affinigraph.vercel.app
+```
+
+`frontend/.vercel/` (the local project link) is git-ignored. After new training runs, rebuild the
+dashboard data first (`python scripts/build_dashboard_data.py`) so the deployed Results page and
+headline scores update.
+
+#### 3. Update the API
+
+Push to `main`. Render redeploys automatically (auto-deploy is on by default for blueprint
+services). To serve newly trained models, run `python scripts/train_all.py --only-artifacts`
+(copies checkpoints to `models/serving/`), commit and push.
+
+#### Behaviour and limits
+
+| Topic | Detail |
+|---|---|
+| Local vs. deployed | On `localhost` the frontend always talks to the local server; anywhere else it uses the Render URL in `config.js` |
+| Cold start | Free Render services **sleep after 15 min idle**; the first request then takes ~1 min while the sidebar shows *Server offline* |
+| Memory | The API uses ~390 MB RAM (measured), within the free tier's 512 MB. If Render reports out-of-memory, move to the smallest paid instance |
+| Offline fallback | If the API is unreachable, a prediction is still shown but clearly labelled *Offline estimate (server not running)*. It is a rough heuristic, not the model |
+| Data | `data/raw/davis` and `data/raw/kiba` (~6 MB) are committed because the API needs them for examples and measured values |
+
+#### Demo-day checklist
+
+1. ~2 minutes before presenting, open <https://affinigraph-api.onrender.com/api/health> to wake the API.
+2. Open <https://affinigraph.vercel.app> and confirm the sidebar says *GNN ×1 ready*.
+3. Predict page: click **Imatinib**, then **ABL1**, then **Predict Binding Affinity**. This shows
+   predicted vs. measured pKd (8.96), atom saliency, the protein attention strip and ADMET flags.
+4. Simulation page: the attention map for the same prediction.
+5. Results and How It Works pages: live metrics.
+6. Backup if the network fails: run `python scripts/serve_app.py` locally and use <http://localhost:8000>.
+
+#### Troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| Sidebar stays *Server offline* | API asleep: open the `/api/health` URL and wait ~1 min; check the Render dashboard logs |
+| Prediction labelled *Offline estimate* | Same as above: the frontend could not reach the API |
+| `/api/health` shows `model_loaded: false` | `models/serving/*.pt` missing from the deployed commit: run `python scripts/train_all.py --only-artifacts`, commit and push |
+| Render build fails on torch | Make sure the build uses `requirements-server.txt` (CPU wheel index), not `requirements.txt` |
+| Vercel shows an old version | `cd frontend && vercel deploy --prod` again; hard-refresh the browser |
 
 ---
 
