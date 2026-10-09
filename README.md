@@ -406,7 +406,7 @@ To recreate the service (for example in another Render account):
 4. When the service is **Live**, check <https://affinigraph-api.onrender.com/api/health>.
    It should return `{"status": "healthy", "model_loaded": true, ...}`.
 5. Open <https://affinigraph.vercel.app>. The sidebar status changes from *Server offline*
-   to *GNN ×1 ready*, and predictions now come from the trained model.
+   to *GNN model ready*, and predictions now come from the trained model.
 
 **Changing the API URL:** the frontend reads it from `frontend/config.js`. Edit it, then redeploy
 the frontend (step 2) and push:
@@ -450,7 +450,7 @@ services). To serve newly trained models, run `python scripts/train_all.py --onl
 #### Demo-day checklist
 
 1. ~2 minutes before presenting, open <https://affinigraph-api.onrender.com/api/health> to wake the API.
-2. Open <https://affinigraph.vercel.app> and confirm the sidebar says *GNN ×1 ready*.
+2. Open <https://affinigraph.vercel.app> and confirm the sidebar says *GNN model ready*.
 3. Predict page: click **Imatinib**, then **ABL1**, then **Predict Binding Affinity**. This shows
    predicted vs. measured pKd (8.96), atom saliency, the protein attention strip and ADMET flags.
 4. Simulation page: the attention map for the same prediction.

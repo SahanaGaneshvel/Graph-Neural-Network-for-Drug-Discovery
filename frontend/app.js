@@ -500,7 +500,10 @@ function renderGlossary(filter = 'all', search = '') {
 // ============================================
 
 function sourceChip(source) {
-  if (source === 'model') return '<span class="source-chip model">Trained GNN ensemble</span>';
+  if (source === 'model') {
+    const n = AppState.backend?.ensemble_size || 1;
+    return `<span class="source-chip model">${n > 1 ? `Trained GNN ensemble (${n} models)` : 'Trained GNN'}</span>`;
+  }
   if (source === 'heuristic') return '<span class="source-chip heuristic">Heuristic (no trained model loaded)</span>';
   return '<span class="source-chip heuristic">Offline estimate (server not running)</span>';
 }
@@ -511,7 +514,7 @@ function renderAtomImportance(expl) {
   if (!atoms.length || atoms.length !== scores.length) return '';
   return `
     <div class="result-block">
-      <h4>Atom importance <span class="hint">gradient × input saliency, averaged over the ensemble</span></h4>
+      <h4>Atom importance <span class="hint">gradient × input saliency${(AppState.backend?.ensemble_size || 1) > 1 ? ', averaged over the ensemble' : ''}</span></h4>
       <div class="atom-chips">
         ${atoms.map((sym, i) => `
           <span class="atom-chip" style="background:${heatColor(scores[i])}; color:${scores[i] > 0.55 ? '#fff' : 'var(--text-primary)'}"
@@ -782,7 +785,7 @@ async function checkBackend() {
     AppState.backend = info;
     if (info.loaded) {
       dot?.classList.add('online');
-      if (text) text.textContent = `GNN ×${info.ensemble_size} ready`;
+      if (text) text.textContent = info.ensemble_size > 1 ? `GNN ×${info.ensemble_size} ready` : 'GNN model ready';
     } else {
       if (text) text.textContent = 'No trained model';
     }
